@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>*{margin:0;padding:0}body{background:#0a0a1a;overflow:hidden}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+const W=800,H=500,SZ=20,COLS=Math.floor(W/SZ),ROWS=Math.floor(H/SZ);
+let snake,dir,nextDir,food,bonus,score,lives,sc,lv,alive,speed,particles;
+
+const config={type:Phaser.AUTO,width:W,height:H,backgroundColor:'#0a0a1a',
+  scene:{preload,create,update}};
+const game=new Phaser.Game(config);
+
+function preload(){}
+
+function create(){
+  reset.call(this);
+  // Controls
+  this.input.keyboard.on('keydown',({key})=>{
+    if(key==='ArrowUp'   &&dir.y===0)nextDir={x:0,y:-1};
+    if(key==='ArrowDown' &&dir.y===0)nextDir={x:0,y:1};
+    if(key==='ArrowLeft' &&dir.x===0)nextDir={x:-1,y:0};
+    if(key==='ArrowRight'&&dir.x===0)nextDir={x:1,y:0};
+    if(key==='w'&&dir.y===0)nextDir={x:0,y:-1};
+    if(key==='s'&&dir.y===0)nextDir={x:0,y:1};
+    if(key==='a'&&dir.x===0)nextDir={x:-1,y:0};
+    if(key==='d'&&dir.x===0)nextDir={x:1,y:0};
+    if((key==='r'||key==='R')&&!alive)reset.call(this);
+  });
+  // Swipe support
+  let sx,sy;
+  this.input.on('pointerdown',p=>{sx=p.x;sy=p.y});
+  this.input.on('pointerup',p=>{
+    const dx=p.x-sx,dy=p.y-sy;
+    if(Math.abs(dx)>Math.abs(dy)){dx>0?nextDir={x:1,y:0}:nextDir={x:-1,y:0};}
+    else{dy>0?nextDir={x:0,y:1}:nextDir={x:0,y:-1};}
+  });
+  particles=this.add.graphics();
+}
+
+function reset(){
+  snake=[{x:20,y:12},{x:19,y:12},{x:18,y:12}];
+  dir={x:1,y:0};nextDir={x:1,y:0};
+  score=0;lives=3;speed=130;alive=true;bonus=null;
+  placeFood();
+  if(this.moveTimer)this.moveTimer.remove();
+  this.moveTimer=this.time.addEvent({delay:speed,callback:move,callbackScope:this,loop:true});
+  if(!sc){
+    sc=this.add.text(8,8,'',{color:'#a78bfa',fontSize:'15px',fontFamily:'monospace',fontStyle:'bold'}).setDepth(10);
+    lv=this.add.text(W-8,8,'',{color:'#fbbf24',fontSize:'15px',fontFamily:'monospace',fontStyle:'bold'}).setDepth(10).setOrigin(1,0);
+  }
+  if(this.ovText){this.ovText.destroy();this.ovText=null;}
+  if(this.ovSub){this.ovSub.destroy();this.ovSub=null;}
+  if(this.g)this.g.destroy();
+  this.g=this.add.graphics().setDepth(1);
+  draw.call(this);
+}
+
+function placeFood(){
+  food={x:Math.floor(Math.random()*(COLS-2))+1,y:Math.floor(Math.random()*(ROWS-2))+1};
+  if(Math.random()<0.2) bonus={x:Math.floor(Math.random()*(COLS-2))+1,y:Math.floor(Math.random()*(ROWS-2))+1,timer:150};
+}
+
+function move(){
+  if(!alive)return;
+  dir={...nextDir};
+  const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  // Wrap walls
+  head.x=(head.x+COLS)%COLS; head.y=(head.y+ROWS)%ROWS;
+  // Self collision
+  if(snake.some(s=>s.x===head.x&&s.y===head.y)){
+    lives--;
+    if(lives<=0){gameOver.call(this);}
+    return;
+  }
+  snake.unshift(head);
+  let ate=false;
+  if(head.x===food.x&&head.y===food.y){
+    score+=10;ate=true;
+    spawnParticles.call(this,food.x*SZ+SZ/2,food.y*SZ+SZ/2,0xfbbf24);
+    placeFood();
+    if(score%50===0&&speed>60){speed-=10;this.moveTimer.delay=speed;}
+  }else if(bonus&&head.x===bonus.x&&head.y===bonus.y){
+    score+=30;ate=true;bonus=null;
+    spawnParticles.call(this,head.x*SZ+SZ/2,head.y*SZ+SZ/2,0xec4899);
+  }else{snake.pop();}
+  sc.setText('Score: '+score);
+  lv.setText('♥'.repeat(lives));
+  window.parent.postMessage({type:'GAME_SCORE',score},'*');
+  if(bonus){bonus.timer--;if(bonus.timer<=0)bonus=null;}
+  draw.call(this);
+}
+
+function spawnParticles(x,y,color){
+  const g=this.add.graphics().setDepth(5);
+  const pts=Array.from({length:8},()=>({x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,life:20}));
+  let t=0;
+  const id=this.time.addEvent({delay:16,repeat:20,callback:()=>{
+    g.clear();
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life--;g.fillStyle(color,p.life/20);g.fillRect(p.x-2,p.y-2,4,4);});
+    if(t++>20){g.destroy();id.remove();}
+  }});
+}
+
+function gameOver(){
+  alive=false;
+  this.ovText=this.add.text(W/2,H/2-30,'GAME OVER',{color:'#ef4444',fontSize:'52px',fontFamily:'monospace',fontStyle:'bold'}).setOrigin(0.5).setDepth(20);
+  this.ovSub=this.add.text(W/2,H/2+30,'Score: '+score+'   Press R to restart',{color:'rgba(255,255,255,0.5)',fontSize:'18px',fontFamily:'monospace'}).setOrigin(0.5).setDepth(20);
+}
+
+function draw(){
+  this.g.clear();
+  // Grid dots
+  this.g.fillStyle(0x1a1a2e);
+  for(let x=0;x<COLS;x++) for(let y=0;y<ROWS;y++) this.g.fillRect(x*SZ+SZ/2-1,y*SZ+SZ/2-1,2,2);
+  // Food
+  this.g.fillStyle(0xfbbf24);
+  this.g.fillRect(food.x*SZ+2,food.y*SZ+2,SZ-4,SZ-4);
+  this.g.lineStyle(1,0xfef3c7,0.8);
+  this.g.strokeRect(food.x*SZ+2,food.y*SZ+2,SZ-4,SZ-4);
+  // Bonus
+  if(bonus){
+    const pulse=0.7+0.3*Math.sin(Date.now()/150);
+    this.g.fillStyle(0xec4899,pulse);
+    this.g.fillCircle(bonus.x*SZ+SZ/2,bonus.y*SZ+SZ/2,SZ/2-1);
+  }
+  // Snake
+  snake.forEach((s,i)=>{
+    const t=1-i/snake.length;
+    const r=i===0?0xa78bfa:Phaser.Display.Color.Interpolate.ColorWithColor({r:0x7c,g:0x3a,b:0xed},{r:0x1e,g:0x1b,b:0x4b},100,Math.round((1-t)*100));
+    if(i===0){this.g.fillStyle(0xa78bfa);}
+    else{this.g.fillStyle(Phaser.Display.Color.GetColor(Math.round(0x7c*t),Math.round(0x3a*t),Math.round(0xed*t)));}
+    this.g.fillRoundedRect(s.x*SZ+1,s.y*SZ+1,SZ-2,SZ-2,i===0?4:2);
+  });
+}
+
+function update(){
+  // Gamepad
+  const gp=navigator.getGamepads?.()?.[0];
+  if(gp){
+    const x=gp.axes[0]??0,y=gp.axes[1]??0;
+    if(x<-0.5&&dir.x===0)nextDir={x:-1,y:0};
+    if(x>0.5&&dir.x===0)nextDir={x:1,y:0};
+    if(y<-0.5&&dir.y===0)nextDir={x:0,y:-1};
+    if(y>0.5&&dir.y===0)nextDir={x:0,y:1};
+    if(gp.buttons[12]?.pressed&&dir.y===0)nextDir={x:0,y:-1};
+    if(gp.buttons[13]?.pressed&&dir.y===0)nextDir={x:0,y:1};
+    if(gp.buttons[14]?.pressed&&dir.x===0)nextDir={x:-1,y:0};
+    if(gp.buttons[15]?.pressed&&dir.x===0)nextDir={x:1,y:0};
+    if(gp.buttons[9]?.pressed&&!alive)reset.call(this);
+  }
+}
+</script>
+</body></html>

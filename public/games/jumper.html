@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>*{margin:0;padding:0}body{background:#0a0a1a;overflow:hidden}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+const W=800,H=500;
+const config={type:Phaser.AUTO,width:W,height:H,backgroundColor:'#0a0a1a',
+  physics:{default:'arcade',arcade:{gravity:{y:600},debug:false}},
+  scene:{preload,create,update}};
+const game=new Phaser.Game(config);
+
+let player,platforms,gems,score,sc,alive,cursors,jumpKey,cameraX,speed,spawnX;
+
+function preload(){}
+
+function makeTex(scene,key,w,h,fn){
+  const g=scene.make.graphics({add:false});fn(g);g.generateTexture(key,w,h);g.destroy();
+}
+
+function create(){
+  makeTex(this,'player',20,24,g=>{g.fillStyle(0xa78bfa);g.fillRect(2,0,16,20);g.fillStyle(0xfde68a);g.fillRect(5,0,10,10);});
+  makeTex(this,'plat',120,16,g=>{g.fillStyle(0x312e81);g.fillRect(0,0,120,16);g.fillStyle(0x4c1d95,0.5);g.fillRect(0,0,120,4);g.lineStyle(1,0x7c3aed,0.6);g.strokeRect(0,0,120,16);});
+  makeTex(this,'gem',14,14,g=>{g.fillStyle(0xfbbf24);g.fillTriangle(7,0,14,14,0,14);});
+
+  cursors=this.input.keyboard.createCursorKeys();
+  jumpKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+  this.input.keyboard.addKey('W');
+
+  platforms=this.physics.add.staticGroup();
+  gems=this.physics.add.group();
+  score=0;alive=true;cameraX=0;speed=200;spawnX=W;
+
+  // Ground stretch
+  for(let x=0;x<W*2;x+=120)spawnPlatform.call(this,x,H-30,true);
+  spawnX=W+120;
+
+  player=this.physics.add.sprite(100,H-100,'player').setDepth(5);
+  player.body.setSize(16,22);
+
+  this.physics.add.collider(player,platforms);
+  this.physics.add.overlap(player,gems,(p,g)=>{
+    g.destroy();score+=5;sc.setText('Score: '+score);
+    window.parent.postMessage({type:'GAME_SCORE',score},'*');
+  });
+
+  // Parallax stars
+  this.stars=this.add.graphics().setScrollFactor(0.2);
+  for(let i=0;i<200;i++)this.stars.fillStyle(0xffffff,Math.random()*0.5+0.1).fillCircle(Math.random()*W*3,Math.random()*H,Math.random()<0.2?1.5:1);
+
+  sc=this.add.text(8,8,'Score: 0',{color:'#a78bfa',fontSize:'15px',fontFamily:'monospace',fontStyle:'bold'}).setScrollFactor(0).setDepth(10);
+  this.add.text(W/2,8,'← → to run  ↑/Space to jump',{color:'rgba(255,255,255,0.25)',fontSize:'12px',fontFamily:'monospace'}).setOrigin(0.5,0).setScrollFactor(0).setDepth(10);
+  this.cameras.main.startFollow(player,true,0.1,0.1);
+  this.cameras.main.setBounds(-Infinity,-Infinity,Infinity,Infinity);
+}
+
+function spawnPlatform(x,y,ground=false){
+  const p=platforms.create(x,y,'plat').setDisplaySize(ground?120:Phaser.Math.Between(80,140),16).refreshBody();
+  if(!ground&&Math.random()<0.5){
+    const gem=gems.create(x,y-24,'gem');
+    gem.body.allowGravity=false;
+  }
+}
+
+function update(){
+  if(!alive)return;
+  const gp=navigator.getGamepads?.()?.[0];
+  const left=(cursors.left.isDown)||(gp&&(gp.axes[0]<-0.5||gp.buttons[14]?.pressed));
+  const right=(cursors.right.isDown)||(gp&&(gp.axes[0]>0.5||gp.buttons[15]?.pressed));
+  const jump=(cursors.up.isDown||Phaser.Input.Keyboard.JustDown(jumpKey))||(gp&&gp.buttons[0]?.pressed);
+  const onGround=player.body.blocked.down;
+
+  if(left)player.setVelocityX(-speed);
+  else if(right)player.setVelocityX(speed);
+  else player.setVelocityX(player.body.velocity.x*0.85);
+
+  if(jump&&onGround)player.setVelocityY(-520);
+
+  // Auto-scroll score
+  score+=Math.floor(this.game.loop.delta*0.003);
+  sc.setText('Score: '+score);
+  window.parent.postMessage({type:'GAME_SCORE',score},'*');
+
+  // Speed up
+  speed=Math.min(350,200+score*0.02);
+
+  // Spawn more platforms ahead
+  while(spawnX<player.x+W*1.5){
+    const y=Phaser.Math.Between(H*0.3,H-80);
+    spawnPlatform.call(this,spawnX,y);
+    spawnX+=Phaser.Math.Between(80,160);
+  }
+
+  // Death
+  if(player.y>H+100){
+    alive=false;
+    this.add.text(W/2,H/2-30,'GAME OVER',{color:'#ef4444',fontSize:'52px',fontFamily:'monospace',fontStyle:'bold'}).setScrollFactor(0).setOrigin(0.5).setDepth(20);
+    this.add.text(W/2,H/2+30,'Score: '+score+'   Refresh to restart',{color:'rgba(255,255,255,0.5)',fontSize:'18px',fontFamily:'monospace'}).setScrollFactor(0).setOrigin(0.5).setDepth(20);
+  }
+}
+</script>
+</body></html>
