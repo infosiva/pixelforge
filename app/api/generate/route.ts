@@ -42,10 +42,14 @@ export async function POST(req: NextRequest) {
   const seed = Math.abs(gameId.split('').reduce((a, c) => a + c.charCodeAt(0), 0))
 
   // Run code gen + meta gen + bg gen in parallel
+  let falFailed = false
   const [htmlRaw, meta, bgUrl] = await Promise.all([
     generateGameCode(prompt, genre, ageRating),
     generateGameMeta(prompt, genre, ageRating),
-    generateBackground(`${genre} game ${prompt.slice(0, 40)}`, seed).catch(() => ''),
+    generateBackground(`${genre} game ${prompt.slice(0, 40)}`, seed).then(url => {
+      if (!url) falFailed = true
+      return url
+    }).catch(() => { falFailed = true; return '' }),
   ])
 
   let html = htmlRaw
@@ -80,5 +84,10 @@ export async function POST(req: NextRequest) {
 
   await saveGame(game).catch(e => console.error('[db] save failed:', e))
 
-  return NextResponse.json({ gameId, title: game.title, htmlUrl })
+  return NextResponse.json({
+    gameId,
+    title: game.title,
+    htmlUrl,
+    warnings: falFailed ? ['thumbnail_generation_failed'] : undefined,
+  })
 }
