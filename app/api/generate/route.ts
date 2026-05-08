@@ -2,28 +2,25 @@
  * POST /api/generate
  * Body: { prompt, genre }
  * 1. Generate game code via Groq
- * 2. Generate thumbnail via fal.ai
- * 3. Store HTML in Vercel Blob
+ * 2. Generate thumbnail via fal.ai (optional)
+ * 3. Store HTML in Vercel Blob or memory
  * 4. Save game metadata
- * Returns: { gameId }
+ * Returns: { gameId, title, htmlUrl }
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { generateGameCode, generateGameMeta } from '@/lib/ai'
 import { generateBackground } from '@/lib/assets'
-import { saveGame } from '@/lib/db'
+import { saveGame, storeGameHtml } from '@/lib/db'
 import type { Game, GenerateRequest, AgeRating } from '@/lib/types'
 
-// Blocklist for prompt safety
 const BLOCKED = ['nude', 'naked', 'sex', 'porn', 'gore', 'kill real', 'hack', 'bomb']
 
 function isBlocked(text: string): boolean {
-  const t = text.toLowerCase()
-  return BLOCKED.some(w => t.includes(w))
+  return BLOCKED.some(w => text.toLowerCase().includes(w))
 }
 
 function validateGameHtml(html: string): boolean {
-  return html.includes('new Phaser.Game(') || html.includes('new Phaser.Game ({')
+  return html.includes('new Phaser.Game(') || html.includes('new Phaser.Game (')
 }
 
 export async function POST(req: NextRequest) {
@@ -51,31 +48,23 @@ export async function POST(req: NextRequest) {
     generateBackground(`${genre} game ${prompt.slice(0, 40)}`, seed).catch(() => ''),
   ])
 
-  if (!validateGameHtml(htmlRaw)) {
+  let html = htmlRaw
+  if (!validateGameHtml(html)) {
     // Retry once
-    const retry = await generateGameCode(prompt, genre, ageRating).catch(() => '')
-    if (!validateGameHtml(retry)) {
-      return NextResponse.json({ error: 'Game generation failed — please try a different prompt' }, { status: 500 })
+    html = await generateGameCode(prompt, genre, ageRating).catch(() => '')
+    if (!validateGameHtml(html)) {
+      return NextResponse.json({ error: 'Game generation failed — try a different prompt' }, { status: 500 })
     }
   }
 
-  // Store HTML in Vercel Blob
-  const htmlBlob = await put(
-    `pixelforge/games/${gameId}/game.html`,
-    htmlRaw,
-    { access: 'public', contentType: 'text/html' }
-  ).catch(() => null)
-
-  if (!htmlBlob) {
-    return NextResponse.json({ error: 'Storage error — try again' }, { status: 500 })
-  }
+  const htmlUrl = await storeGameHtml(gameId, html)
 
   const game: Game = {
     id:           gameId,
     title:        meta.title ?? prompt.slice(0, 40),
     description:  meta.description ?? prompt,
     prompt,
-    htmlUrl:      htmlBlob.url,
+    htmlUrl,
     thumbnailUrl: bgUrl,
     genre,
     ageRating,
@@ -91,5 +80,5 @@ export async function POST(req: NextRequest) {
 
   await saveGame(game).catch(e => console.error('[db] save failed:', e))
 
-  return NextResponse.json({ gameId, title: game.title, htmlUrl: htmlBlob.url })
+  return NextResponse.json({ gameId, title: game.title, htmlUrl })
 }
