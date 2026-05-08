@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import ChatBot from '@/components/ChatBot'
+import { PIXELFORGE_CHAT_CONFIG } from '@/lib/chatbot-configs'
 
 export const metadata: Metadata = {
   title: { default: 'PixelForge AI — Build & Play AI Games', template: '%s | PixelForge AI' },
@@ -24,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="py-6 text-center text-xs text-white/20 border-t border-white/5">
           PixelForge AI — Build &amp; play browser games with AI. No downloads. No code.
         </footer>
+        <ChatBot config={PIXELFORGE_CHAT_CONFIG} />
       </body>
     </html>
   )

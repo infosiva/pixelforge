@@ -80,6 +80,8 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
   const iframeRef  = useRef<HTMLIFrameElement>(null)
   const [htmlContent, setHtmlContent] = useState<string>('')
   const [loading, setLoading]         = useState(true)
+  // Local /games/*.html files served as src directly (no fetch needed)
+  const isLocalGame = game.htmlUrl.startsWith('/games/')
   const [liked, setLiked]             = useState(false)
   const [copied, setCopied]           = useState(false)
   const [fullscreen, setFullscreen]   = useState(false)
@@ -94,13 +96,14 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
       return
     }
     if (!game.htmlUrl) { setLoading(false); return }
+    // Local public files — no fetch, load via src
+    if (isLocalGame) { setLoading(false); return }
     fetch(game.htmlUrl)
       .then(r => r.text())
       .then(html => { setHtmlContent(html); setLoading(false) })
       .catch(() => setLoading(false))
-    // Count play
     fetch('/api/play', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gameId: game.id }) })
-  }, [game.id, game.htmlUrl, demoMode])
+  }, [game.id, game.htmlUrl, demoMode, isLocalGame])
 
   // ESC exits fullscreen
   useEffect(() => {
@@ -118,11 +121,12 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
     return () => window.removeEventListener('message', handler)
   }, [])
 
-  // Gamepad support — forward controller inputs as keyboard events to iframe
+  // Gamepad support — forward controller inputs into iframe via postMessage
   useEffect(() => {
     const manager = createGamepadManager((key, down) => {
-      // Fire into parent document — Phaser in iframe picks up via its own gamepad polling
-      // Also fire keyboard events so keyboard-only games get controller input
+      // Post to iframe so Phaser games inside can intercept controller input
+      iframeRef.current?.contentWindow?.postMessage({ type: 'GAMEPAD_KEY', key, down }, '*')
+      // Also fire on parent document for any parent-level listeners
       fireKey(key, down)
     })
     manager.start()
@@ -154,133 +158,186 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
 
   const iframeAttrs = {
     ref: iframeRef,
-    sandbox: 'allow-scripts' as const,
+    sandbox: 'allow-scripts allow-same-origin' as const,
     className: 'w-full h-full',
     style: { border: 'none', display: 'block' },
     title: game.title,
   }
 
+  // Controls for curated games (always visible)
+  const CURATED_CONTROLS: Record<string, { key: string; action: string }[]> = {
+    'builtin-racing':    [{ key: '← →', action: 'Change lane' }, { key: 'A D', action: 'Change lane' }, { key: 'Tap', action: 'Left/right half' }, { key: '🎮 D-pad', action: 'Lane change' }],
+    'builtin-shooter':  [{ key: '← → ↑ ↓', action: 'Move ship' }, { key: 'Space', action: 'Fire' }, { key: 'Touch', action: 'Move & auto-fire' }, { key: '🎮 Stick+A', action: 'Move & fire' }],
+    'builtin-snake':    [{ key: '← → ↑ ↓', action: 'Steer' }, { key: 'WASD', action: 'Steer' }, { key: '🎮 D-pad', action: 'Steer' }],
+    'builtin-asteroids':[{ key: '← →', action: 'Rotate' }, { key: '↑', action: 'Thrust' }, { key: 'Space', action: 'Shoot' }, { key: '🎮 L-stick+A', action: 'Play' }],
+    'builtin-jumper':   [{ key: '← →', action: 'Move' }, { key: 'Space / ↑', action: 'Jump' }, { key: 'Touch', action: 'Tap to jump' }, { key: '🎮 Stick+A', action: 'Move & jump' }],
+    'builtin-breakout': [{ key: '← → / Mouse', action: 'Move paddle' }, { key: '🎮 L-stick', action: 'Move paddle' }],
+  }
+  const controls = CURATED_CONTROLS[game.id] ?? []
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* New game celebration */}
+    <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 20px 40px' }}>
+
+      {/* New game banner */}
       {isNew && (
-        <div className="mb-4 p-4 rounded-2xl text-center animate-fade-up"
-          style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
-          <div className="text-2xl mb-1">🎉</div>
-          <p className="font-bold text-purple-300">Your game was published!</p>
-          <p className="text-sm text-white/40">Share it with friends or explore the arcade below</p>
+        <div style={{ margin: '12px 0 20px', padding: '14px 20px', borderRadius: 12, textAlign: 'center', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
+          <span style={{ fontSize: 20 }}>🎉</span>
+          <span style={{ fontWeight: 700, color: '#c4b5fd', marginLeft: 10 }}>Your game was published! Share it with friends.</span>
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left: game + controls */}
-        <div className="flex-1 min-w-0">
-          {/* Title row */}
-          <div className="flex items-start gap-3 mb-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-black text-white line-clamp-1">{game.title}</h1>
-              <p className="text-sm text-white/40 mt-0.5 line-clamp-2">{game.description}</p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Like */}
-              <button onClick={() => setLiked(l => !l)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all ${liked ? 'text-pink-400' : 'text-white/40 hover:text-pink-400'}`}
-                style={{ background: liked ? 'rgba(236,72,153,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${liked ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.08)'}` }}>
-                <Heart className={`w-4 h-4 ${liked ? 'fill-pink-400' : ''}`} />
-                <span>{game.likeCount + (liked ? 1 : 0)}</span>
-              </button>
-              {/* Share */}
-              <button onClick={handleShare}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white/40 hover:text-white transition-colors"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                {copied ? <Check className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
-                {copied ? 'Copied!' : 'Share'}
-              </button>
-              {/* Remix */}
-              <button onClick={handleRemix}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white/40 hover:text-purple-300 transition-colors"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <RotateCcw className="w-4 h-4" /> Remix
-              </button>
-            </div>
-          </div>
-
-          {/* Game viewport */}
-          <div className={`relative rounded-2xl overflow-hidden ${fullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}`}
-            style={{ background: '#0a0a1a', border: '1px solid rgba(255,255,255,0.08)', aspectRatio: fullscreen ? 'unset' : '16/10' }}>
-            {loading ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center animate-pulse-glow"
-                  style={{ background: 'linear-gradient(135deg,#7c3aed,#ec4899)' }}>
-                  <Play className="w-6 h-6 text-white fill-white ml-0.5" />
-                </div>
-                <p className="text-sm text-white/40">Loading game…</p>
-              </div>
-            ) : htmlContent ? (
-              <iframe
-                {...iframeAttrs}
-                srcDoc={htmlContent}
-              />
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white/40">
-                <Sparkles className="w-10 h-10 mb-3 opacity-30" />
-                <p>Game unavailable</p>
-              </div>
-            )}
-            {/* Fullscreen toggle */}
-            <button onClick={() => setFullscreen(f => !f)}
-              className="absolute bottom-3 right-3 p-2 rounded-lg text-white/40 hover:text-white transition-colors"
-              style={{ background: 'rgba(0,0,0,0.5)' }}>
-              <Maximize2 className="w-4 h-4" />
+      {/* Top bar: title + actions */}
+      <div style={{ paddingTop: 16, paddingBottom: 12 }}>
+        <Link href="/" style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>← Arcade</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <h1 style={{ fontSize: 'clamp(16px,4vw,22px)', fontWeight: 900, color: '#fff', flex: 1, minWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>{game.title}</h1>
+          {/* Actions — icon-only on mobile */}
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button onClick={() => setLiked(l => !l)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: liked ? 'rgba(236,72,153,0.18)' : 'rgba(255,255,255,0.05)', border: `1px solid ${liked ? 'rgba(236,72,153,0.4)' : 'rgba(255,255,255,0.1)'}`, color: liked ? '#f472b6' : 'rgba(255,255,255,0.5)' }}>
+              <Heart size={13} fill={liked ? '#f472b6' : 'none'} /> <span className="hide-xs">{game.likeCount + (liked ? 1 : 0)}</span>
             </button>
-            {/* Score overlay */}
-            {score !== null && (
-              <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold"
-                style={{ background: 'rgba(0,0,0,0.6)', color: '#fbbf24' }}>
-                <Trophy className="w-4 h-4" /> {score}
-              </div>
-            )}
-          </div>
-
-          {/* Game meta */}
-          <div className="flex items-center gap-4 mt-3 text-xs text-white/25 flex-wrap">
-            <span className="chip">{game.genre}</span>
-            <span>by {game.authorName}</span>
-            <span>{game.playCount.toLocaleString()} plays</span>
-            {game.remixedFromId && <span className="flex items-center gap-1"><RotateCcw className="w-3 h-3" />remixed</span>}
-            {gamepadConnected
-              ? <span className="flex items-center gap-1 text-green-400"><Gamepad2 className="w-3 h-3" />Controller connected</span>
-              : <span className="flex items-center gap-1"><Gamepad2 className="w-3 h-3" />Plug in controller to play</span>
-            }
-          </div>
-
-          {/* Build your own CTA */}
-          <div className="mt-6 p-4 rounded-2xl flex items-center gap-4"
-            style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}>
-            <div className="flex-1">
-              <p className="font-bold text-white text-sm">Build your own game like this</p>
-              <p className="text-xs text-white/40 mt-0.5">Describe any idea — AI builds a playable game in ~15 seconds</p>
-            </div>
-            <Link href="/create" className="btn-primary flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap flex-shrink-0">
-              <Wand2 className="w-4 h-4" /> Create
+            <button onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: copied ? '#4ade80' : 'rgba(255,255,255,0.5)' }}>
+              {copied ? <Check size={13} /> : <Share2 size={13} />} <span className="hide-xs">{copied ? 'Copied' : 'Share'}</span>
+            </button>
+            <button onClick={handleRemix} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}>
+              <RotateCcw size={13} /> <span className="hide-xs">Remix</span>
+            </button>
+            <Link href="/create" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: '#fff' }}>
+              <Wand2 size={13} /> <span className="hide-xs">Build</span>
             </Link>
           </div>
         </div>
+      </div>
 
-        {/* Right: more games */}
-        {moreGames.length > 0 && (
-          <div className="lg:w-72 flex-shrink-0">
-            <h3 className="font-bold text-sm text-white/60 uppercase tracking-wide mb-3">More games</h3>
-            <div className="space-y-3">
-              {moreGames.map(g => (
-                <GameCard key={g.id} game={g} />
+      {/* Main layout: game | sidebar — stacks on mobile */}
+      <div className="play-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'start' }}>
+
+        {/* Game column */}
+        <div>
+          {/* Game viewport */}
+          <div style={{
+            position: 'relative', borderRadius: 16, overflow: 'hidden',
+            background: '#04040d',
+            border: '1px solid rgba(124,58,237,0.3)',
+            boxShadow: '0 0 60px rgba(124,58,237,0.15), 0 0 0 1px rgba(255,255,255,0.04)',
+            ...(fullscreen ? { position: 'fixed', inset: 0, zIndex: 50, borderRadius: 0 } : {}),
+          }}>
+            {/* Top bar inside viewport */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(0,0,0,0.6)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px #4ade80', display: 'inline-block' }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em' }}>{game.title.toUpperCase()}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {score !== null && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#fbbf24' }}>
+                    <Trophy size={12} /> {score.toLocaleString()}
+                  </span>
+                )}
+                {gamepadConnected && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#4ade80', fontWeight: 600 }}>
+                    <Gamepad2 size={12} /> Connected
+                  </span>
+                )}
+                <button onClick={() => setFullscreen(f => !f)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 6, padding: '4px 8px', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
+                  <Maximize2 size={13} />
+                </button>
+              </div>
+            </div>
+
+            {/* iframe */}
+            <div style={{ width: '100%', aspectRatio: '16/10', position: 'relative', background: '#04040d' }}>
+              {loading ? (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg,#7c3aed,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="animate-pulse-glow">
+                    <Play size={24} color="#fff" fill="#fff" />
+                  </div>
+                  <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Loading game…</p>
+                </div>
+              ) : isLocalGame ? (
+                <iframe {...iframeAttrs} src={game.htmlUrl} sandbox="allow-scripts allow-same-origin" style={{ border: 'none', width: '100%', height: '100%', display: 'block' }} />
+              ) : htmlContent ? (
+                <iframe {...iframeAttrs} srcDoc={htmlContent} style={{ border: 'none', width: '100%', height: '100%', display: 'block' }} />
+              ) : (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)' }}>
+                  <Sparkles size={36} style={{ marginBottom: 12, opacity: 0.3 }} />
+                  <p>Game unavailable</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Controls bar — always visible */}
+          <div style={{ marginTop: 10, padding: '12px 16px', borderRadius: 12, background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.18)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <Gamepad2 size={13} color="#a78bfa" />
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Controls</span>
+              {!gamepadConnected && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginLeft: 4 }}>· plug in controller for gamepad</span>}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px' }}>
+              {controls.length > 0 ? controls.map(({ key, action }) => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+                  <span style={{ padding: '2px 8px', borderRadius: 5, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{key}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{action}</span>
+                </div>
+              )) : (
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>Use arrow keys / WASD · Space to shoot/jump · 🎮 controller supported</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Game info card */}
+          <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 18 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: 14 }}>{game.description}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { label: 'Genre', value: game.genre },
+                { label: 'By', value: game.authorName },
+                { label: 'Plays', value: game.playCount.toLocaleString() },
+                { label: 'Age', value: game.ageRating ?? '8+' },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>{label}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.75)', fontWeight: 700, textTransform: 'capitalize' }}>{value}</span>
+                </div>
               ))}
             </div>
-            <Link href="/" className="block text-center mt-4 text-sm text-purple-400 hover:text-purple-300 transition-colors font-semibold">
-              Browse all games →
+          </div>
+
+          {/* Build CTA */}
+          <div style={{ background: 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(124,58,237,0.05))', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 14, padding: 18 }}>
+            <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 6 }}>🤖 Build your own</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 14 }}>Describe any game idea — AI builds it in 15 seconds.</p>
+            <Link href="/create" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px', borderRadius: 9, background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: '#fff', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
+              <Wand2 size={14} /> Start Building
             </Link>
           </div>
-        )}
+
+          {/* More games */}
+          {moreGames.length > 0 && (
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>More Games</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {moreGames.slice(0, 4).map(g => (
+                  <Link key={g.id} href={`/play/${g.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, background: '#12121e', border: '1px solid rgba(255,255,255,0.07)', transition: 'border-color 0.15s' }}>
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>
+                      {{ arcade: '👾', shooter: '🚀', platformer: '🏃', puzzle: '🧩', rpg: '⚔️', other: '🎮' }[g.genre] ?? '🎮'}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</p>
+                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.genre}</p>
+                    </div>
+                    <Play size={12} color="rgba(255,255,255,0.3)" />
+                  </Link>
+                ))}
+              </div>
+              <Link href="/" style={{ display: 'block', textAlign: 'center', marginTop: 12, fontSize: 13, color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>Browse all →</Link>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

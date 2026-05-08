@@ -20,6 +20,7 @@ export interface Game {
   remixCount: number
   createdAt: string
   publishedAt?: string
+  controls?: string[]       // e.g. ['← → Move', 'Space: Fire']
 }
 
 export interface GameAsset {

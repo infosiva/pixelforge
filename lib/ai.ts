@@ -9,12 +9,26 @@ Rules:
 - Use Phaser 3.60 via CDN: https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js
 - Canvas must be 800x500, backgroundColor: '#0a0a1a'
 - Draw ALL graphics with Phaser Graphics API — no external image URLs
-- MUST support 4 input methods: keyboard arrows/WASD, touch/swipe, mouse click, AND Gamepad API
-- Gamepad support: use navigator.getGamepads() in update(), axes[0]/axes[1] for movement, buttons[0] for action
+- MUST support keyboard arrows/WASD as primary input
+- Add this EXACT script before new Phaser.Game to handle gamepad postMessage from parent:
+  <script>
+  window.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='GAMEPAD_KEY'){
+      var t=e.data.down?'keydown':'keyup';
+      var ev=new KeyboardEvent(t,{key:e.data.key,code:e.data.key,bubbles:true,cancelable:true});
+      document.dispatchEvent(ev);
+      window.dispatchEvent(ev);
+    }
+  });
+  </script>
+- Game must have MULTIPLE LEVELS or waves with increasing difficulty — not just one endless loop
+- Each level should introduce new enemies, mechanics, or speed changes
 - Game must start immediately, be playable within 5 seconds
-- Add score display top-left, lives/health top-right in clean pixel font
-- Smooth 60fps, clean polished code, add particle effects for satisfying feedback
-- On game over: show stylish "GAME OVER" overlay with final score and "Press R / A button to restart"
+- Show level number prominently when level changes
+- Add score display top-left, lives/health top-right, level center-top — clean pixel font
+- Smooth 60fps, polished code, particle effects for satisfying feedback
+- On game over: show "GAME OVER" overlay with final score + level reached + "Press R to restart"
+- On level complete: celebrate with particles/flash before loading next level
 - When score changes, post to parent: window.parent.postMessage({type:'GAME_SCORE',score:N},'*')
 - The game must contain exactly: new Phaser.Game({ at the start
 - CONTENT RULES: No blood, gore, explicit violence, sexual content, or adult themes. Keep fun and family-friendly.`

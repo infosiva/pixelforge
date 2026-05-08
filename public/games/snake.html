@@ -4,10 +4,18 @@
 <body>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script>
+// PostMessage bridge
+window.addEventListener("message",function(e){
+  if(e.data&&e.data.type==="GAMEPAD_KEY"){
+    var ev=new KeyboardEvent(e.data.down?"keydown":"keyup",{key:e.data.key,code:e.data.key,bubbles:true,cancelable:true});
+    window.dispatchEvent(ev);document.dispatchEvent(ev);
+  }
+});
+
 const W=800,H=500,SZ=20,COLS=Math.floor(W/SZ),ROWS=Math.floor(H/SZ);
 let snake,dir,nextDir,food,bonus,score,lives,sc,lv,alive,speed,particles;
 
-const config={type:Phaser.AUTO,width:W,height:H,backgroundColor:'#0a0a1a',
+const config={type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#0a0a1a',
   scene:{preload,create,update}};
 const game=new Phaser.Game(config);
 

@@ -2,66 +2,60 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
 import GameCard from '@/components/GameCard'
 import type { Game, GameGenre, AgeRating } from '@/lib/types'
 
 const GENRES: Array<{ id: GameGenre | 'all'; label: string; emoji: string }> = [
-  { id: 'all',        label: 'All',        emoji: '🎮' },
+  { id: 'all',        label: 'All Games',  emoji: '🎮' },
   { id: 'arcade',     label: 'Arcade',     emoji: '👾' },
   { id: 'platformer', label: 'Platformer', emoji: '🏃' },
-  { id: 'shooter',    label: 'Shooter',    emoji: '🔫' },
+  { id: 'shooter',    label: 'Shooter',    emoji: '🚀' },
   { id: 'puzzle',     label: 'Puzzle',     emoji: '🧩' },
   { id: 'rpg',        label: 'RPG',        emoji: '⚔️' },
 ]
 
-const AGE_FILTERS: Array<{ id: AgeRating | 'all'; label: string }> = [
+const AGES: Array<{ id: AgeRating | 'all'; label: string }> = [
   { id: 'all', label: 'All ages' },
-  { id: '8+',  label: '🟢 8+' },
-  { id: '12+', label: '🟡 12+' },
-  { id: '16+', label: '🟠 16+' },
+  { id: '8+',  label: '8+' },
+  { id: '12+', label: '12+' },
+  { id: '16+', label: '16+' },
 ]
 
 export default function ArcadeSection({ games }: { games: Game[] }) {
   const [genre, setGenre] = useState<GameGenre | 'all'>('all')
   const [age, setAge]     = useState<AgeRating | 'all'>('all')
 
-  const filtered = games.filter(g => {
-    const matchGenre = genre === 'all' || g.genre === genre
-    const matchAge   = age === 'all' || (g.ageRating ?? '8+') === age
-    return matchGenre && matchAge
-  })
+  const filtered = games.filter(g =>
+    (genre === 'all' || g.genre === genre) &&
+    (age === 'all' || (g.ageRating ?? '8+') === age)
+  )
 
   return (
-    <section id="arcade">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-black text-white">🕹️ Arcade</h2>
-        <Link href="/create" className="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors font-semibold">
-          Build yours <ChevronRight className="w-4 h-4" />
+    <div>
+      {/* Header + filters */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+        <h2 className="section-heading">🕹️ Arcade</h2>
+        <Link href="/create" style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600, textDecoration: 'none' }}>
+          + Build your own →
         </Link>
       </div>
 
-      {/* Genre filter */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+      {/* Genre chips */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }} className="scrollbar-hide">
         {GENRES.map(g => (
           <button key={g.id} onClick={() => setGenre(g.id)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-            style={genre === g.id
-              ? { background: 'rgba(139,92,246,0.25)', border: '1px solid rgba(139,92,246,0.5)', color: '#c4b5fd' }
-              : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)' }}>
+            className={`chip ${genre === g.id ? 'active' : ''}`}>
             {g.emoji} {g.label}
           </button>
         ))}
       </div>
 
-      {/* Age filter */}
-      <div className="flex gap-2 mb-6">
-        {AGE_FILTERS.map(a => (
+      {/* Age chips */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 24 }}>
+        {AGES.map(a => (
           <button key={a.id} onClick={() => setAge(a.id)}
-            className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
-            style={age === a.id
-              ? { background: 'rgba(250,204,21,0.15)', border: '1px solid rgba(250,204,21,0.4)', color: '#fde68a' }
-              : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }}>
+            className={`chip ${age === a.id ? 'active' : ''}`}
+            style={{ fontSize: 12, padding: '4px 10px' }}>
             {a.label}
           </button>
         ))}
@@ -69,20 +63,16 @@ export default function ArcadeSection({ games }: { games: Game[] }) {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-white/30">
-          <p className="text-4xl mb-3">🎮</p>
-          <p>No games match this filter yet</p>
-          <Link href="/create" className="mt-3 inline-block text-sm text-purple-400 hover:text-purple-300">
-            Build one →
-          </Link>
+        <div style={{ textAlign: 'center', padding: '64px 0', color: 'rgba(255,255,255,0.25)' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🎮</div>
+          <p style={{ marginBottom: 8 }}>No games match this filter</p>
+          <Link href="/create" style={{ color: '#a78bfa', fontSize: 14, textDecoration: 'none' }}>Build one →</Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(game => (
-            <GameCard key={game.id} game={game} />
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
+          {filtered.map(game => <GameCard key={game.id} game={game} />)}
         </div>
       )}
-    </section>
+    </div>
   )
 }

@@ -23,6 +23,7 @@ export const CURATED_GAMES: Game[] = [
     remixCount: 0,
     createdAt: '2026-05-07T00:00:00Z',
     publishedAt: '2026-05-07T00:00:00Z',
+    controls: ['← → / A D — change lane', 'Tap left/right half of screen on mobile', 'R — restart after crash'],
   },
   {
     id: 'builtin-shooter',
@@ -41,6 +42,7 @@ export const CURATED_GAMES: Game[] = [
     remixCount: 0,
     createdAt: '2026-05-07T00:00:00Z',
     publishedAt: '2026-05-07T00:00:00Z',
+    controls: ['Arrow keys — move ship', 'Space — fire (hold for auto-fire)', 'R — restart'],
   },
   {
     id: 'builtin-snake',
@@ -59,6 +61,7 @@ export const CURATED_GAMES: Game[] = [
     remixCount: 0,
     createdAt: '2026-05-07T00:00:00Z',
     publishedAt: '2026-05-07T00:00:00Z',
+    controls: ['Arrow keys / WASD — steer snake', 'Collect pink orbs for bonus points', 'R — restart'],
   },
   {
     id: 'builtin-asteroids',
@@ -77,6 +80,7 @@ export const CURATED_GAMES: Game[] = [
     remixCount: 0,
     createdAt: '2026-05-07T00:00:00Z',
     publishedAt: '2026-05-07T00:00:00Z',
+    controls: ['← → — rotate ship', '↑ — thrust forward', 'Space — fire', 'R — restart'],
   },
   {
     id: 'builtin-jumper',
@@ -95,6 +99,7 @@ export const CURATED_GAMES: Game[] = [
     remixCount: 0,
     createdAt: '2026-05-07T00:00:00Z',
     publishedAt: '2026-05-07T00:00:00Z',
+    controls: ['← → / A D — run left/right', '↑ / Space / W — jump (press again for double jump)', 'R — restart'],
   },
   {
     id: 'builtin-breakout',
@@ -113,5 +118,6 @@ export const CURATED_GAMES: Game[] = [
     remixCount: 0,
     createdAt: '2026-05-07T00:00:00Z',
     publishedAt: '2026-05-07T00:00:00Z',
+    controls: ['← → / A D — move paddle', 'Mouse — move paddle (click to launch)', 'R — restart'],
   },
 ]
