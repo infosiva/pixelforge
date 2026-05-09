@@ -162,13 +162,15 @@
 
 /* ── Mobile responsive ── */
 @media (max-width: 640px) {
+  .page-wrap { padding: 0 12px !important; }
+
   /* Hero section */
-  .hero-section { padding: 40px 0 32px !important; }
-  .hero-headline { font-size: 48px !important; }
+  .hero-section { padding: 32px 0 24px !important; }
+  .hero-headline { font-size: 40px !important; }
   .hero-sub { font-size: 15px !important; }
   .hero-ctas { flex-direction: column !important; align-items: stretch !important; }
   .hero-ctas a, .hero-ctas button { justify-content: center !important; }
-  .hero-stats { gap: 18px !important; flex-wrap: wrap !important; }
+  .hero-stats { gap: 14px !important; flex-wrap: wrap !important; justify-content: center !important; }
 
   /* Hero game card */
   .hero-game-card { min-height: auto !important; }
@@ -182,10 +184,10 @@
   .build-cta { padding: 24px 20px !important; flex-direction: column !important; align-items: flex-start !important; }
 
   /* Arcade section */
-  .arcade-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap: 10px !important; }
+  .arcade-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
 
   /* Featured grid */
-  .featured-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap: 10px !important; }
+  .featured-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
 
   /* Dev section */
   .dev-grid { grid-template-columns: 1fr !important; }
@@ -196,6 +198,12 @@
   /* Navbar */
   .nav-links { display: none !important; }
   .nav-cta { padding: 6px 12px !important; font-size: 12px !important; }
+
+  /* Play page */
+  .play-layout { grid-template-columns: 1fr !important; }
+  /* Hide sidebar on mobile — replaced by inline mobile strip */
+  .play-layout > div:last-child { display: none !important; }
+  .hide-xs { display: none !important; }
 }
 
 /* ── Top gradient border effect ── */
@@ -212,3 +220,11 @@
   background: linear-gradient(90deg, #7c3aed, #ec4899);
   border-radius: 2px 2px 0 0;
 }
+
+/* Aceternity UI */
+@keyframes spotlight { 0%{opacity:0;transform:translate(-72%,-62%) scale(0.5)} 100%{opacity:1;transform:translate(-50%,-40%) scale(1)} }
+.animate-spotlight { animation: spotlight 2s ease 0.75s 1 forwards; }
+@keyframes blob { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-50px) scale(1.1)} 66%{transform:translate(-20px,20px) scale(0.9)} }
+.animate-blob { animation: blob 7s infinite; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }

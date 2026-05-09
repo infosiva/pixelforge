@@ -4,6 +4,8 @@ import GameCard from '@/components/GameCard'
 import { listGames } from '@/lib/db'
 import { CURATED_GAMES } from '@/lib/curatedGames'
 import type { GameGenre } from '@/lib/types'
+import { Spotlight } from '@/components/aceternity/spotlight'
+import { BackgroundBeams } from '@/components/aceternity/background-beams'
 
 const DEMO_GAMES = [
   { id: 'demo-1', title: 'Space Blaster',  description: 'Survive waves of alien invaders. How long can you last?',           prompt: 'space shooter',        genre: 'shooter'    as GameGenre, ageRating: '8+'  as const, status: 'published' as const, authorId: 'ai', authorName: 'PixelForge AI', thumbnailUrl: '', playCount: 1243, likeCount: 89,  remixCount: 12, createdAt: '', htmlUrl: '', publishedAt: '' },
@@ -21,10 +23,12 @@ export default async function HomePage() {
   const featured = CURATED_GAMES.slice(1) // remaining 5 curated
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 16px' }} className="page-wrap">
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section className="hero-section" style={{ padding: '64px 0 48px', textAlign: 'center', position: 'relative' }}>
+      <section className="hero-section" style={{ padding: '64px 0 48px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <Spotlight className="-top-40 left-0 md:-top-20" fill="#a855f7" />
+        <BackgroundBeams />
         {/* Background radial blobs */}
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
           <div style={{ position: 'absolute', top: '-40%', left: '10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle,rgba(124,58,237,0.12) 0%,transparent 70%)', filter: 'blur(1px)' }} />
@@ -174,7 +178,7 @@ export default async function HomePage() {
 
       {/* ── FEATURED GRID ─────────────────────────────────────────────── */}
       <section style={{ marginBottom: 64 }}>
-        <div className="featured-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        <div className="featured-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 45vw), 1fr))', gap: 14 }}>
           {featured.map(game => <GameCard key={game.id} game={game} />)}
         </div>
       </section>
@@ -202,7 +206,7 @@ export default async function HomePage() {
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>{arcadeGames.length} games</span>
         </div>
 
-        <div className="arcade-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+        <div className="arcade-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 45vw), 1fr))', gap: 16 }}>
           {arcadeGames.map(game => <GameCard key={game.id} game={game} />)}
         </div>
       </section>
