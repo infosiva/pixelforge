@@ -130,16 +130,16 @@ export default function GameCard({ game, large }: { game: Game; large?: boolean 
           font-size: 11px; font-weight: 900; color: #fff;
           letter-spacing: 0.12em; opacity: 0.9;
         }
-        .game-info { padding: ${large ? '16px 18px' : '12px 14px'}; }
+        .game-info { padding: ${large ? '16px 18px' : '10px 12px'}; }
         .game-title {
-          font-size: ${large ? '17px' : '14px'}; font-weight: 800;
-          color: #fff; margin-bottom: 5px;
+          font-size: ${large ? '17px' : '13px'}; font-weight: 800;
+          color: #fff; margin-bottom: 4px;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           letter-spacing: -0.01em;
         }
         .game-desc {
-          font-size: ${large ? '13px' : '12px'}; color: rgba(255,255,255,0.5);
-          margin-bottom: 10px; line-height: 1.45;
+          font-size: ${large ? '13px' : '11px'}; color: rgba(255,255,255,0.5);
+          margin-bottom: 8px; line-height: 1.45;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
           overflow: hidden;
         }

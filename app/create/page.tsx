@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Wand2, Zap, Loader2 } from 'lucide-react'
 import type { GameGenre, AgeRating } from '@/lib/types'
+import type { AuthUser } from '@/lib/auth'
+import { checkBuildGate, trackUsage, getUser } from '@/lib/auth'
+import AuthModal from '@/components/AuthModal'
 
 const GENRES: Array<{ id: GameGenre; label: string; emoji: string; desc: string; color: string; bg: string }> = [
   { id: 'arcade',     label: 'Arcade',      emoji: '👾', desc: 'Fast-paced classic fun',    color: '#f472b6', bg: '#2d0a20' },
@@ -47,13 +50,16 @@ export default function CreatePage() {
   const [step, setStep]           = useState(0)
   const [error, setError]         = useState('')
 
+  const [authOpen, setAuthOpen]   = useState(false)
+  const [pendingBuild, setPendingBuild] = useState(false)
   const activeGenre = GENRES.find(g => g.id === genre)!
 
-  async function handleBuild() {
-    if (!prompt.trim()) { setError('Describe your game first!'); return }
+  async function runBuild() {
     setError(''); setLoading(true); setStep(0)
     const interval = setInterval(() => setStep(s => Math.min(s + 1, STEPS.length - 1)), 2200)
     try {
+      // Track usage *before* build so count is accurate for gate
+      await trackUsage('game_created')
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,6 +77,23 @@ export default function CreatePage() {
       setLoading(false)
       setError(e instanceof Error ? e.message : 'Something went wrong — try again')
     }
+  }
+
+  async function handleBuild() {
+    if (!prompt.trim()) { setError('Describe your game first!'); return }
+    // Gate check — guests get FREE_BUILDS_LIMIT free builds then must register
+    const gate = await checkBuildGate()
+    if (gate === 'requires_auth') {
+      setPendingBuild(true)
+      setAuthOpen(true)
+      return
+    }
+    await runBuild()
+  }
+
+  function handleAuthSuccess(user: AuthUser) {
+    setAuthOpen(false)
+    if (pendingBuild) { setPendingBuild(false); runBuild() }
   }
 
   /* ── Loading ── */
@@ -246,6 +269,13 @@ export default function CreatePage() {
         </div>
 
       </div>
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => { setAuthOpen(false); setPendingBuild(false) }}
+        onSuccess={handleAuthSuccess}
+        reason="create"
+      />
     </div>
   )
 }
