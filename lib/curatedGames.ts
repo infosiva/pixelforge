@@ -7,6 +7,25 @@ import type { Game } from './types'
 
 export const CURATED_GAMES: Game[] = [
   {
+    id: 'builtin-space-battle',
+    title: 'Stellar Assault',
+    description: 'Epic space battle — dodge enemy fire, unleash power-ups, defeat bosses. Endless action!',
+    prompt: 'space battle shoot em up with bosses and power-ups',
+    htmlUrl: '/games/space-battle.html',
+    thumbnailUrl: '',
+    genre: 'shooter',
+    ageRating: '8+',
+    status: 'published',
+    authorId: 'pixelforge',
+    authorName: 'PixelForge',
+    playCount: 0,
+    likeCount: 0,
+    remixCount: 0,
+    createdAt: '2026-05-10T00:00:00Z',
+    publishedAt: '2026-05-10T00:00:00Z',
+    controls: ['← → / A D — move ship', 'Z / Space / auto-fire enabled', 'Tap left/right/center on mobile', 'R — restart after game over'],
+  },
+  {
     id: 'builtin-racing',
     title: 'Turbo Drift',
     description: 'Top-down racer — drift through corners, avoid traffic, beat your high score.',
