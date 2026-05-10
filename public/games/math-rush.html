@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>*{margin:0;padding:0}body{background:#050510;overflow:hidden}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+// PostMessage gamepad bridge
+window.addEventListener("message",function(e){
+  if(e.data&&e.data.type==="GAMEPAD_KEY"){
+    var ev=new KeyboardEvent(e.data.down?"keydown":"keyup",{key:e.data.key,code:e.data.key,bubbles:true,cancelable:true});
+    window.dispatchEvent(ev);document.dispatchEvent(ev);
+  }
+});
+
+const W=800,H=600;
+let score,lives,level,streak,question,answers,selected,timer,timerVal,gameOver,gameStarted;
+let scoreTxt,livesTxt,levelTxt,streakTxt,questionTxt,timerBar,timerBg,answerBtns,feedbackTxt,startScreen,gameOverScreen;
+let particles,answerData,lastAnswerTime;
+
+const LEVELS=[
+  {ops:['+'],range:10,time:8},
+  {ops:['+','-'],range:15,time:7},
+  {ops:['+','-','×'],range:10,time:6},
+  {ops:['+','-','×','÷'],range:12,time:5},
+  {ops:['+','-','×','÷'],range:20,time:4},
+];
+
+function makeQuestion(lvl){
+  const cfg=LEVELS[Math.min(lvl-1,LEVELS.length-1)];
+  const op=cfg.ops[Math.floor(Math.random()*cfg.ops.length)];
+  let a,b,answer,label;
+  if(op==='+'){a=Math.floor(Math.random()*cfg.range)+1;b=Math.floor(Math.random()*cfg.range)+1;answer=a+b;label=`${a} + ${b}`;}
+  else if(op==='-'){a=Math.floor(Math.random()*cfg.range)+cfg.range;b=Math.floor(Math.random()*cfg.range)+1;answer=a-b;label=`${a} − ${b}`;}
+  else if(op==='×'){a=Math.floor(Math.random()*cfg.range)+1;b=Math.floor(Math.random()*cfg.range)+1;answer=a*b;label=`${a} × ${b}`;}
+  else{b=Math.floor(Math.random()*9)+2;answer=Math.floor(Math.random()*10)+1;a=answer*b;label=`${a} ÷ ${b}`;}
+  // Generate 3 wrong answers close to real
+  const wrongs=new Set();
+  while(wrongs.size<3){
+    const delta=Math.floor(Math.random()*10)-5;
+    const w=answer+delta;
+    if(w!==answer&&w>=0&&!wrongs.has(w))wrongs.add(w);
+  }
+  const opts=[answer,...wrongs].sort(()=>Math.random()-0.5);
+  return{label,answer,opts};
+}
+
+const config={
+  type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#050510',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},
+  scene:{preload,create,update}
+};
+const game=new Phaser.Game(config);
+
+function preload(){}
+
+function create(){
+  score=0;lives=3;level=1;streak=0;gameOver=false;gameStarted=false;
+
+  // Background grid
+  const g=this.add.graphics();
+  g.lineStyle(1,0x1a1a4a,0.4);
+  for(let x=0;x<W;x+=40)g.lineBetween(x,0,x,H);
+  for(let y=0;y<H;y+=40)g.lineBetween(0,y,W,y);
+
+  // Animated background blobs
+  const b1=this.add.circle(200,150,200,0x3b0066,0.15);
+  const b2=this.add.circle(600,400,180,0x006633,0.12);
+  this.tweens.add({targets:b1,x:250,y:120,duration:4000,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+  this.tweens.add({targets:b2,x:580,y:430,duration:5000,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+
+  // HUD
+  scoreTxt=this.add.text(20,16,'Score: 0',{fontSize:'20px',fontFamily:'monospace',color:'#ffffff',fontStyle:'bold'});
+  livesTxt=this.add.text(W/2,16,'❤️❤️❤️',{fontSize:'20px',fontFamily:'monospace'}).setOrigin(0.5,0);
+  levelTxt=this.add.text(W-20,16,'Level 1',{fontSize:'18px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(1,0);
+  streakTxt=this.add.text(W/2,44,'',{fontSize:'14px',fontFamily:'monospace',color:'#fbbf24'}).setOrigin(0.5,0);
+
+  // Timer bar bg
+  timerBg=this.add.rectangle(W/2,86,W-40,10,0x1a1a3a).setOrigin(0.5,0);
+  timerBar=this.add.rectangle(20,86,W-40,10,0x4ade80).setOrigin(0,0);
+
+  // Question text
+  questionTxt=this.add.text(W/2,160,'',{fontSize:'clamp(40px,8vw,64px)',fontFamily:'monospace',color:'#ffffff',fontStyle:'bold'}).setOrigin(0.5,0.5);
+
+  // Answer buttons (4 rectangles)
+  answerBtns=[];
+  const positions=[[W/2-160,350],[W/2+160,350],[W/2-160,440],[W/2+160,440]];
+  for(let i=0;i<4;i++){
+    const [bx,by]=positions[i];
+    const bg=this.add.rectangle(bx,by,280,68,0x1a1040,1).setInteractive({cursor:'pointer'});
+    bg.setStrokeStyle(2,0x7c3aed);
+    const txt=this.add.text(bx,by,'',{fontSize:'26px',fontFamily:'monospace',color:'#ffffff',fontStyle:'bold'}).setOrigin(0.5,0.5);
+    bg.on('pointerover',()=>{if(!selected)bg.setFillStyle(0x2d1b69);});
+    bg.on('pointerout',()=>{if(!selected)bg.setFillStyle(0x1a1040);});
+    bg.on('pointerdown',()=>checkAnswer.call(this,i));
+    answerBtns.push({bg,txt});
+  }
+
+  // Feedback text
+  feedbackTxt=this.add.text(W/2,290,'',{fontSize:'22px',fontFamily:'monospace',color:'#4ade80',fontStyle:'bold'}).setOrigin(0.5,0.5).setAlpha(0);
+
+  // Keyboard 1-4
+  this.input.keyboard.on('keydown',({key})=>{
+    if(!gameStarted||gameOver)return;
+    if(key==='1')checkAnswer.call(this,0);
+    if(key==='2')checkAnswer.call(this,1);
+    if(key==='3')checkAnswer.call(this,2);
+    if(key==='4')checkAnswer.call(this,3);
+    if(key==='r'||key==='R')restart.call(this);
+  });
+
+  // Touch swipe hints
+  this.input.on('pointerdown',(p)=>{lastAnswerTime=p;});
+
+  showStartScreen.call(this);
+}
+
+function showStartScreen(){
+  startScreen=this.add.container(W/2,H/2,[
+    this.add.rectangle(0,0,500,340,0x0d0d2e,0.97).setStrokeStyle(2,0x7c3aed),
+    this.add.text(0,-120,'🧮 Math Rush',{fontSize:'36px',fontFamily:'monospace',color:'#fff',fontStyle:'bold'}).setOrigin(0.5),
+    this.add.text(0,-68,'Answer fast — beat the clock!',{fontSize:'16px',fontFamily:'monospace',color:'rgba(255,255,255,0.55)'}).setOrigin(0.5),
+    this.add.text(-180,-20,'⌨️ Press 1–4 to answer',{fontSize:'13px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(0,0.5),
+    this.add.text(-180,14,'🖱️ Click answer buttons',{fontSize:'13px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(0,0.5),
+    this.add.text(-180,48,'🎮 Gamepad A/B/X/Y',{fontSize:'13px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(0,0.5),
+    this.add.text(-180,82,'📱 Tap on mobile',{fontSize:'13px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(0,0.5),
+    this.add.text(0,130,'Tap / Press Space to Start',{fontSize:'18px',fontFamily:'monospace',color:'#4ade80',fontStyle:'bold'}).setOrigin(0.5),
+  ]);
+  this.input.once('pointerdown',()=>startGame.call(this));
+  this.input.keyboard.once('keydown-SPACE',()=>startGame.call(this));
+}
+
+function startGame(){
+  if(startScreen)startScreen.destroy();
+  gameStarted=true;
+  nextQuestion.call(this);
+}
+
+function nextQuestion(){
+  selected=false;
+  const q=makeQuestion(level);
+  answerData=q;
+  questionTxt.setText(q.label+' = ?');
+  for(let i=0;i<4;i++){
+    answerBtns[i].txt.setText(String(q.opts[i]));
+    answerBtns[i].bg.setFillStyle(0x1a1040);
+    answerBtns[i].bg.setStrokeStyle(2,0x7c3aed);
+    answerBtns[i].bg.setInteractive();
+  }
+  feedbackTxt.setAlpha(0);
+  // Timer
+  const cfg=LEVELS[Math.min(level-1,LEVELS.length-1)];
+  timerVal=cfg.time;
+  if(timer)timer.remove();
+  timerBar.setFillStyle(0x4ade80);
+  timer=this.time.addEvent({delay:100,repeat:cfg.time*10-1,callback:()=>tickTimer.call(this,cfg.time)});
+}
+
+function tickTimer(maxTime){
+  timerVal-=0.1;
+  const pct=Math.max(0,timerVal/maxTime);
+  timerBar.width=(W-40)*pct;
+  const col=pct>0.5?0x4ade80:pct>0.25?0xfbbf24:0xef4444;
+  timerBar.setFillStyle(col);
+  if(timerVal<=0)timeUp.call(this);
+}
+
+function timeUp(){
+  if(selected)return;
+  selected=true;
+  if(timer)timer.remove();
+  lives--;
+  streak=0;
+  updateHUD.call(this);
+  // Flash red on correct answer
+  const correctIdx=answerData.opts.indexOf(answerData.answer);
+  answerBtns[correctIdx].bg.setFillStyle(0x166534);
+  answerBtns[correctIdx].bg.setStrokeStyle(2,0x4ade80);
+  feedbackTxt.setText('⏰ Too slow! −1 life').setStyle({color:'#ef4444'}).setAlpha(1);
+  if(lives<=0){this.time.delayedCall(1000,()=>endGame.call(this));return;}
+  this.time.delayedCall(1200,()=>nextQuestion.call(this));
+}
+
+function checkAnswer(idx){
+  if(!gameStarted||gameOver||selected)return;
+  selected=true;
+  if(timer)timer.remove();
+  const chosen=answerData.opts[idx];
+  const correct=chosen===answerData.answer;
+  if(correct){
+    streak++;
+    const bonus=Math.min(streak,5);
+    const pts=10+bonus*5;
+    score+=pts;
+    if(score>=level*80)level=Math.min(level+1,LEVELS.length);
+    answerBtns[idx].bg.setFillStyle(0x166534);
+    answerBtns[idx].bg.setStrokeStyle(2,0x4ade80);
+    const bonusTxt=streak>1?` 🔥×${streak} +${pts}`:` +${pts}`;
+    feedbackTxt.setText('✓ Correct!'+bonusTxt).setStyle({color:'#4ade80'}).setAlpha(1);
+    spawnParticles.call(this,answerBtns[idx].bg.x,answerBtns[idx].bg.y,0x4ade80);
+    this.cameras.main.shake(80,0.003);
+  }else{
+    streak=0;lives--;
+    answerBtns[idx].bg.setFillStyle(0x7f1d1d);
+    answerBtns[idx].bg.setStrokeStyle(2,0xef4444);
+    const ci=answerData.opts.indexOf(answerData.answer);
+    answerBtns[ci].bg.setFillStyle(0x166534);
+    answerBtns[ci].bg.setStrokeStyle(2,0x4ade80);
+    feedbackTxt.setText(`✗ Answer: ${answerData.answer}`).setStyle({color:'#ef4444'}).setAlpha(1);
+    this.cameras.main.shake(200,0.008);
+  }
+  updateHUD.call(this);
+  if(!correct&&lives<=0){this.time.delayedCall(1000,()=>endGame.call(this));return;}
+  this.time.delayedCall(correct?900:1300,()=>nextQuestion.call(this));
+}
+
+function spawnParticles(x,y,color){
+  for(let i=0;i<12;i++){
+    const p=this.add.circle(x,y,4,color);
+    const angle=Math.random()*Math.PI*2;
+    const speed=60+Math.random()*80;
+    this.tweens.add({targets:p,x:x+Math.cos(angle)*speed,y:y+Math.sin(angle)*speed,alpha:0,scaleX:0.2,scaleY:0.2,duration:600,ease:'Power2',onComplete:()=>p.destroy()});
+  }
+}
+
+function updateHUD(){
+  scoreTxt.setText(`Score: ${score}`);
+  livesTxt.setText('❤️'.repeat(Math.max(0,lives))+'🖤'.repeat(Math.max(0,3-lives)));
+  levelTxt.setText(`Level ${level}`);
+  streakTxt.setText(streak>1?`🔥 Streak ×${streak}`:'');
+}
+
+function endGame(){
+  gameOver=true;
+  if(timer)timer.remove();
+  for(const b of answerBtns)b.bg.disableInteractive();
+  gameOverScreen=this.add.container(W/2,H/2,[
+    this.add.rectangle(0,0,420,320,0x0d0d2e,0.97).setStrokeStyle(2,0xef4444),
+    this.add.text(0,-120,'Game Over',{fontSize:'36px',fontFamily:'monospace',color:'#ef4444',fontStyle:'bold'}).setOrigin(0.5),
+    this.add.text(0,-68,`Final Score: ${score}`,{fontSize:'24px',fontFamily:'monospace',color:'#fff',fontStyle:'bold'}).setOrigin(0.5),
+    this.add.text(0,-28,`Reached Level ${level}`,{fontSize:'16px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(0.5),
+    this.add.text(0,10,`Best Streak: ${streak}`,{fontSize:'16px',fontFamily:'monospace',color:'#fbbf24'}).setOrigin(0.5),
+    this.add.text(0,70,'Press R or Tap to Restart',{fontSize:'18px',fontFamily:'monospace',color:'#4ade80',fontStyle:'bold'}).setOrigin(0.5),
+  ]);
+  this.input.once('pointerdown',()=>restart.call(this));
+  this.input.keyboard.once('keydown-R',()=>restart.call(this));
+}
+
+function restart(){
+  score=0;lives=3;level=1;streak=0;gameOver=false;gameStarted=true;
+  if(gameOverScreen)gameOverScreen.destroy();
+  updateHUD.call(this);
+  nextQuestion.call(this);
+}
+
+function update(){}
+</script>
+</body>
+</html>

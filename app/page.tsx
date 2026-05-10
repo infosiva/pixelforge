@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Play, Wand2, Gamepad2, Zap, Users, Sparkles } from 'lucide-react'
 import GameCard from '@/components/GameCard'
+import ArcadeGrid from '@/components/ArcadeGrid'
 import { listGames } from '@/lib/db'
 import { CURATED_GAMES } from '@/lib/curatedGames'
 import type { GameGenre } from '@/lib/types'
@@ -200,16 +201,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── ARCADE GRID ──────────────────────────────────────────────── */}
-      <section id="arcade" style={{ marginBottom: 80 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 24 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>🕹️ Arcade</h2>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>{arcadeGames.length} games</span>
-        </div>
-
-        <div className="arcade-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 45vw), 1fr))', gap: 16 }}>
-          {arcadeGames.map(game => <GameCard key={game.id} game={game} />)}
-        </div>
-      </section>
+      <ArcadeGrid games={arcadeGames} />
 
       {/* ── DEV SECTION ──────────────────────────────────────────────── */}
       <section style={{ marginBottom: 80 }}>

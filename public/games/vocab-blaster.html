@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>*{margin:0;padding:0}body{background:#050510;overflow:hidden}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+window.addEventListener("message",function(e){
+  if(e.data&&e.data.type==="GAMEPAD_KEY"){
+    var ev=new KeyboardEvent(e.data.down?"keydown":"keyup",{key:e.data.key,code:e.data.key,bubbles:true,cancelable:true});
+    window.dispatchEvent(ev);document.dispatchEvent(ev);
+  }
+});
+
+const W=800,H=600;
+
+// Word bank: [word, translation, language_tag]
+const WORDS=[
+  // Spanish
+  ['Hola','Hello','🇪🇸'],['Gracias','Thank you','🇪🇸'],['Casa','House','🇪🇸'],['Perro','Dog','🇪🇸'],['Gato','Cat','🇪🇸'],
+  ['Agua','Water','🇪🇸'],['Fuego','Fire','🇪🇸'],['Sol','Sun','🇪🇸'],['Luna','Moon','🇪🇸'],['Rojo','Red','🇪🇸'],
+  ['Verde','Green','🇪🇸'],['Azul','Blue','🇪🇸'],['Grande','Big','🇪🇸'],['Pequeño','Small','🇪🇸'],['Rápido','Fast','🇪🇸'],
+  // French
+  ['Bonjour','Hello','🇫🇷'],['Merci','Thank you','🇫🇷'],['Maison','House','🇫🇷'],['Chien','Dog','🇫🇷'],['Chat','Cat','🇫🇷'],
+  ['Eau','Water','🇫🇷'],['Feu','Fire','🇫🇷'],['Soleil','Sun','🇫🇷'],['Lune','Moon','🇫🇷'],['Rouge','Red','🇫🇷'],
+  // Japanese
+  ['犬 Inu','Dog','🇯🇵'],['猫 Neko','Cat','🇯🇵'],['水 Mizu','Water','🇯🇵'],['火 Hi','Fire','🇯🇵'],['空 Sora','Sky','🇯🇵'],
+  ['山 Yama','Mountain','🇯🇵'],['川 Kawa','River','🇯🇵'],['花 Hana','Flower','🇯🇵'],['木 Ki','Tree','🇯🇵'],['石 Ishi','Stone','🇯🇵'],
+  // German
+  ['Hund','Dog','🇩🇪'],['Katze','Cat','🇩🇪'],['Wasser','Water','🇩🇪'],['Feuer','Fire','🇩🇪'],['Haus','House','🇩🇪'],
+  ['Sonne','Sun','🇩🇪'],['Mond','Moon','🇩🇪'],['Groß','Big','🇩🇪'],['Klein','Small','🇩🇪'],['Schnell','Fast','🇩🇪'],
+];
+
+// Falling word bubbles
+let bubbles,score,lives,streak,level,gameOver,gameStarted;
+let scoreTxt,livesTxt,streakTxt,levelTxt,questionBox,questionWord,questionLang,feedbackTxt;
+let currentWord,spawnTimer,speed,spawnRate;
+
+const config={
+  type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#050510',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},
+  scene:{preload,create,update}
+};
+new Phaser.Game(config);
+
+function preload(){}
+
+function create(){
+  score=0;lives=3;streak=0;level=1;gameOver=false;gameStarted=false;
+  bubbles=[];speed=60;spawnRate=3000;
+
+  // Background
+  const g=this.add.graphics();
+  g.lineStyle(1,0x0a0a2e,0.6);
+  for(let x=0;x<W;x+=50)g.lineBetween(x,0,x,H);
+  for(let y=0;y<H;y+=50)g.lineBetween(0,y,W,y);
+
+  // Gradient blobs
+  const b1=this.add.circle(150,200,220,0x1a0055,0.2);
+  const b2=this.add.circle(650,350,200,0x005533,0.15);
+  this.tweens.add({targets:b1,x:180,y:170,duration:5000,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+  this.tweens.add({targets:b2,x:630,y:380,duration:6000,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+
+  // HUD
+  scoreTxt=this.add.text(16,12,'Score: 0',{fontSize:'18px',fontFamily:'monospace',color:'#fff',fontStyle:'bold'});
+  livesTxt=this.add.text(W/2,12,'❤️❤️❤️',{fontSize:'18px',fontFamily:'monospace'}).setOrigin(0.5,0);
+  levelTxt=this.add.text(W-16,12,'Lv 1',{fontSize:'18px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(1,0);
+  streakTxt=this.add.text(W/2,38,'',{fontSize:'13px',fontFamily:'monospace',color:'#fbbf24'}).setOrigin(0.5,0);
+
+  // Separator line
+  this.add.line(W/2,62,0,0,W,0,0x2a2a5a,1);
+
+  // Question box at bottom
+  this.add.rectangle(W/2,H-70,W-40,80,0x0a0a2e,0.9).setStrokeStyle(2,0x7c3aed);
+  this.add.text(W/2,H-90,'TRANSLATE THIS WORD:',{fontSize:'10px',fontFamily:'monospace',color:'rgba(255,255,255,0.4)',letterSpacing:2}).setOrigin(0.5,0.5);
+  questionLang=this.add.text(W/2-120,H-58,'',{fontSize:'22px',fontFamily:'monospace',color:'#fbbf24'}).setOrigin(0.5,0.5);
+  questionWord=this.add.text(W/2+20,H-58,'',{fontSize:'28px',fontFamily:'monospace',color:'#fff',fontStyle:'bold'}).setOrigin(0.5,0.5);
+
+  feedbackTxt=this.add.text(W/2,H-130,'',{fontSize:'20px',fontFamily:'monospace',color:'#4ade80',fontStyle:'bold'}).setOrigin(0.5,0.5).setAlpha(0);
+
+  // Instruction
+  this.add.text(W/2,90,'Click the correct English translation as it falls!',
+    {fontSize:'13px',fontFamily:'monospace',color:'rgba(255,255,255,0.35)'}).setOrigin(0.5,0);
+
+  showStart.call(this);
+}
+
+function showStart(){
+  const ss=this.add.container(W/2,H/2,[
+    this.add.rectangle(0,0,460,300,0x0d0d2e,0.97).setStrokeStyle(2,0x7c3aed),
+    this.add.text(0,-110,'🌍 Vocab Blaster',{fontSize:'32px',fontFamily:'monospace',color:'#fff',fontStyle:'bold'}).setOrigin(0.5),
+    this.add.text(0,-64,'Tap the correct translation before words fall off!',{fontSize:'13px',fontFamily:'monospace',color:'rgba(255,255,255,0.5)'}).setOrigin(0.5),
+    this.add.text(0,-30,'Languages: 🇪🇸 Spanish · 🇫🇷 French · 🇯🇵 Japanese · 🇩🇪 German',{fontSize:'12px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(0.5),
+    this.add.text(0,10,'🖱️ Click the correct English word',{fontSize:'13px',fontFamily:'monospace',color:'rgba(255,255,255,0.6)'}).setOrigin(0.5),
+    this.add.text(0,40,'📱 Tap on mobile — words fall faster each level',{fontSize:'13px',fontFamily:'monospace',color:'rgba(255,255,255,0.6)'}).setOrigin(0.5),
+    this.add.text(0,100,'Tap / Press Space to Start',{fontSize:'18px',fontFamily:'monospace',color:'#4ade80',fontStyle:'bold'}).setOrigin(0.5),
+  ]);
+  this.input.once('pointerdown',()=>{ss.destroy();startGame.call(this);});
+  this.input.keyboard.once('keydown-SPACE',()=>{ss.destroy();startGame.call(this);});
+}
+
+function startGame(){
+  gameStarted=true;
+  pickNewWord.call(this);
+  spawnBubble.call(this);
+  spawnTimer=this.time.addEvent({delay:spawnRate,loop:true,callback:()=>spawnBubble.call(this)});
+  this.input.keyboard.on('keydown-R',()=>{if(gameOver)restartGame.call(this);});
+}
+
+function pickNewWord(){
+  currentWord=WORDS[Math.floor(Math.random()*WORDS.length)];
+  questionLang.setText(currentWord[2]);
+  questionWord.setText(currentWord[0]);
+}
+
+function getDistractors(correctTranslation){
+  const pool=WORDS.filter(w=>w[1]!==correctTranslation).map(w=>w[1]);
+  const shuffled=pool.sort(()=>Math.random()-0.5);
+  return shuffled.slice(0,3);
+}
+
+function spawnBubble(){
+  if(gameOver)return;
+  // 1 correct + 3 distractors, random which we spawn this round
+  const isCorrect=Math.random()<0.45; // ~45% chance correct answer falls
+  const word=isCorrect?currentWord[1]:getDistractors(currentWord[1])[0];
+  const x=60+Math.random()*(W-120);
+  const col=isCorrect?0x1a3a1a:0x1a1040;
+  const strokeCol=isCorrect?0x4ade80:0x7c3aed;
+
+  const bg=this.add.rectangle(x,80,Math.max(120,word.length*13+20),44,col,0.92).setStrokeStyle(2,strokeCol).setInteractive({cursor:'pointer'});
+  const txt=this.add.text(x,80,word,{fontSize:'17px',fontFamily:'monospace',color:'#fff',fontStyle:'bold'}).setOrigin(0.5,0.5);
+
+  bg.on('pointerover',()=>bg.setStrokeStyle(3,0xfbbf24));
+  bg.on('pointerout',()=>bg.setStrokeStyle(2,strokeCol));
+  bg.on('pointerdown',()=>clickBubble.call(this,bg,txt,word,isCorrect));
+
+  bubbles.push({bg,txt,correct:isCorrect});
+
+  // Fall tween
+  this.tweens.add({
+    targets:[bg,txt],y:H-120,
+    duration:Math.max(1800,4000-speed*30),
+    ease:'Linear',
+    onComplete:()=>onBubbleReachBottom.call(this,bg,txt,word,isCorrect)
+  });
+}
+
+function clickBubble(bg,txt,word,correct){
+  if(gameOver)return;
+  removeBubble(bg,txt);
+  if(correct){
+    score+=10+streak*2;streak++;
+    if(streak>0&&streak%5===0){level++;speed=Math.min(speed+10,90);
+      spawnRate=Math.max(1200,spawnRate-200);
+      if(spawnTimer){spawnTimer.remove();spawnTimer=this.time.addEvent({delay:spawnRate,loop:true,callback:()=>spawnBubble.call(this)});}
+    }
+    showFeedback.call(this,'✓ Correct! +'+( 10+streak*2),true);
+    spawnParticles.call(this,bg.x,bg.y,0x4ade80);
+    this.cameras.main.shake(60,0.003);
+    pickNewWord.call(this);
+  }else{
+    lives--;streak=0;
+    showFeedback.call(this,'✗ Wrong! −1 life',false);
+    this.cameras.main.shake(180,0.007);
+  }
+  updateHUD.call(this);
+  if(lives<=0)this.time.delayedCall(500,()=>endGame.call(this));
+}
+
+function onBubbleReachBottom(bg,txt,word,correct){
+  if(gameOver)return;
+  if(correct){
+    lives--;streak=0;
+    showFeedback.call(this,'⬇️ Missed it! −1 life',false);
+    this.cameras.main.shake(200,0.008);
+    updateHUD.call(this);
+    if(lives<=0){this.time.delayedCall(500,()=>endGame.call(this));return;}
+    pickNewWord.call(this);
+  }
+  removeBubble(bg,txt);
+}
+
+function removeBubble(bg,txt){
+  this.tweens.killTweensOf([bg,txt]);
+  bg.disableInteractive();
+  this.tweens.add({targets:[bg,txt],alpha:0,scaleY:0.2,duration:200,onComplete:()=>{bg.destroy();txt.destroy();}});
+  bubbles=bubbles.filter(b=>b.bg!==bg);
+}
+
+function showFeedback(msg,good){
+  feedbackTxt.setText(msg).setStyle({color:good?'#4ade80':'#ef4444'}).setAlpha(1);
+  this.tweens.killTweensOf(feedbackTxt);
+  this.tweens.add({targets:feedbackTxt,alpha:0,delay:900,duration:300});
+}
+
+function spawnParticles(x,y,color){
+  for(let i=0;i<10;i++){
+    const p=this.add.circle(x,y,3,color);
+    const a=Math.random()*Math.PI*2,spd=50+Math.random()*70;
+    this.tweens.add({targets:p,x:x+Math.cos(a)*spd,y:y+Math.sin(a)*spd,alpha:0,duration:500,ease:'Power2',onComplete:()=>p.destroy()});
+  }
+}
+
+function updateHUD(){
+  scoreTxt.setText('Score: '+score);
+  livesTxt.setText('❤️'.repeat(Math.max(0,lives))+'🖤'.repeat(Math.max(0,3-lives)));
+  levelTxt.setText('Lv '+level);
+  streakTxt.setText(streak>1?'🔥 Streak ×'+streak:'');
+}
+
+function endGame(){
+  gameOver=true;
+  if(spawnTimer)spawnTimer.remove();
+  for(const b of bubbles){this.tweens.killTweensOf([b.bg,b.txt]);b.bg.disableInteractive();}
+
+  this.add.container(W/2,H/2,[
+    this.add.rectangle(0,0,420,300,0x0d0d2e,0.97).setStrokeStyle(2,0xef4444),
+    this.add.text(0,-110,'Game Over',{fontSize:'34px',fontFamily:'monospace',color:'#ef4444',fontStyle:'bold'}).setOrigin(0.5),
+    this.add.text(0,-64,'Final Score: '+score,{fontSize:'24px',fontFamily:'monospace',color:'#fff',fontStyle:'bold'}).setOrigin(0.5),
+    this.add.text(0,-24,'Words learned today: '+(Math.floor(score/10)),{fontSize:'15px',fontFamily:'monospace',color:'#a78bfa'}).setOrigin(0.5),
+    this.add.text(0,14,'Best Streak: '+streak,{fontSize:'15px',fontFamily:'monospace',color:'#fbbf24'}).setOrigin(0.5),
+    this.add.text(0,80,'Tap / Press R to Restart',{fontSize:'17px',fontFamily:'monospace',color:'#4ade80',fontStyle:'bold'}).setOrigin(0.5),
+  ]);
+  this.input.once('pointerdown',()=>restartGame.call(this));
+  this.input.keyboard.once('keydown-R',()=>restartGame.call(this));
+}
+
+function restartGame(){
+  score=0;lives=3;streak=0;level=1;gameOver=false;speed=60;spawnRate=3000;bubbles=[];
+  this.scene.restart();
+}
+
+function update(){}
+</script>
+</body>
+</html>

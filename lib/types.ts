@@ -1,4 +1,4 @@
-export type GameGenre = 'platformer' | 'shooter' | 'puzzle' | 'rpg' | 'arcade' | 'other'
+export type GameGenre = 'platformer' | 'shooter' | 'puzzle' | 'rpg' | 'arcade' | 'educational' | 'other'
 export type GameStatus = 'generating' | 'published' | 'flagged' | 'deleted'
 export type AgeRating = '8+' | '12+' | '16+'
 
