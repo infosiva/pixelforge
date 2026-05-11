@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typing Speed Racer</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #050510; overflow: hidden; font-family: monospace; }
+canvas { display: block; }
+#inputBox {
+  position: fixed;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px; height: 1px;
+  top: 50%; left: 50%;
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<input id="inputBox" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const input = document.getElementById('inputBox');
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Color palette
+const C = {
+  bg: '#050510',
+  road: '#1a1a2e',
+  roadLine: '#2a2a4e',
+  cyan: '#00f5ff',
+  cyanDim: '#004d55',
+  white: '#e0e0ff',
+  red: '#ff4444',
+  green: '#00ff88',
+  yellow: '#ffdd00',
+  purple: '#7700ff',
+  orange: '#ff8800',
+};
+
+// Word list
+const WORDS = [
+  'speed','race','neon','fast','glow','code','type','dash','zoom','rush',
+  'blaze','pixel','turbo','flash','drive','boost','shift','brake','track','finish',
+  'laser','cyber','hyper','ultra','power','skill','rapid','sharp','quick','sync',
+  'burst','nitro','pulse','storm','force','rider','wheel','motor','arrow','flame',
+  'sonic','light','volt','wind','beam','apex','epic','star','fire','zero'
+];
+
+const TOTAL_WORDS = 20;
+const HS_KEY = 'typingRacerHS';
+
+let state = 'start'; // start, playing, gameover
+let words = [], currentWordIdx = 0, typedText = '';
+let speed = 0, maxSpeed = 220, wpm = 0;
+let progress = 0; // 0-1
+let startTime = 0, lastTime = 0;
+let carX, carY, carBob = 0;
+let roadOffset = 0;
+let particles = [];
+let stars = [];
+let wordStartTime = 0, wordCount = 0;
+let highScore = parseInt(localStorage.getItem(HS_KEY) || '0');
+let finalWPM = 0, finalTime = 0;
+let scanlineOffset = 0;
+let shakeX = 0, shakeTimer = 0;
+
+// Generate stars
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 80; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * (H * 0.35),
+      size: Math.random() * 2 + 0.5,
+      twinkle: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function pickWords() {
+  let pool = [...WORDS].sort(() => Math.random() - 0.5);
+  words = pool.slice(0, TOTAL_WORDS);
+}
+
+function startGame() {
+  pickWords();
+  currentWordIdx = 0;
+  typedText = '';
+  speed = 0;
+  progress = 0;
+  wpm = 0;
+  startTime = performance.now();
+  lastTime = startTime;
+  wordStartTime = startTime;
+  wordCount = 0;
+  particles = [];
+  carBob = 0;
+  roadOffset = 0;
+  shakeX = 0; shakeTimer = 0;
+  state = 'playing';
+  input.value = '';
+  input.focus();
+}
+
+function spawnParticle(x, y, color) {
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const spd = Math.random() * 3 + 1;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd - 1,
+      life: 1,
+      color,
+      size: Math.random() * 4 + 2
+    });
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx * dt * 60;
+    p.y += p.vy * dt * 60;
+    p.vy += 0.05 * dt * 60;
+    p.life -= dt * 1.5;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// Draw pixel car
+function drawCar(x, y) {
+  const s = 3;
+  const pixels = [
+    [0,0,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1],
+    [1,0,1,1,1,1,0,1],
+    [0,0,1,1,1,1,0,0],
+  ];
+  const colors = [null,null,C.cyan,C.cyanDim,C.white];
+  // Glow
+  ctx.shadowColor = C.cyan;
+  ctx.shadowBlur = 20;
+  const W2 = pixels[0].length;
+  const H2 = pixels.length;
+  const ox = x - (W2 * s) / 2;
+  const oy = y - (H2 * s) / 2;
+  for (let r = 0; r < H2; r++) {
+    for (let c = 0; c < W2; c++) {
+      const v = pixels[r][c];
+      if (!v) continue;
+      let col = C.cyan;
+      if (r === 3 && (c === 1 || c === 6)) col = '#ffaa00'; // wheels
+      else if (r === 1 && c >= 2 && c <= 5) col = '#88eeff'; // windshield
+      ctx.fillStyle = col;
+      ctx.fillRect(ox + c * s, oy + r * s, s, s);
+    }
+  }
+  ctx.shadowBlur = 0;
+  // Exhaust particles at speed
+  if (speed > 20) {
+    ctx.fillStyle = `rgba(0,245,255,${speed/maxSpeed * 0.6})`;
+    for (let i = 0; i < 3; i++) {
+      const ex = ox - Math.random() * 12;
+      const ey = oy + 9 + i * 4;
+      const sz = Math.random() * 4 + 1;
+      ctx.fillRect(ex, ey, sz, sz);
+    }
+  }
+}
+
+function drawRoad(dt) {
+  const roadTop = H * 0.55;
+  const roadBot = H;
+  const roadMid = (roadTop + roadBot) / 2;
+  const cx = W / 2;
+
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, roadTop);
+  sky.addColorStop(0, '#020208');
+  sky.addColorStop(1, '#0d0d20');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, roadTop);
+
+  // Stars
+  for (const s of stars) {
+    s.twinkle += dt * 2;
+    const a = 0.5 + 0.5 * Math.sin(s.twinkle);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = C.white;
+    ctx.fillRect(s.x, s.y, s.size, s.size);
+  }
+  ctx.globalAlpha = 1;
+
+  // Horizon glow
+  ctx.shadowColor = C.cyan;
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = C.cyanDim;
+  ctx.fillRect(0, roadTop - 2, W, 2);
+  ctx.shadowBlur = 0;
+
+  // Road surface
+  const roadGrad = ctx.createLinearGradient(0, roadTop, 0, roadBot);
+  roadGrad.addColorStop(0, '#1a1a2e');
+  roadGrad.addColorStop(1, '#0d0d1a');
+  ctx.fillStyle = roadGrad;
+  ctx.fillRect(0, roadTop, W, roadBot - roadTop);
+
+  // Road markings (perspective dashes)
+  roadOffset = (roadOffset + speed * dt * 0.5) % 80;
+  ctx.fillStyle = '#2a2a5e';
+  for (let d = 0; d < 10; d++) {
+    const t = (d / 10 + roadOffset / 800) % 1;
+    const y = roadTop + t * (roadBot - roadTop);
+    const lw = 4 + t * 20;
+    const lh = 8 + t * 24;
+    ctx.fillRect(cx - lw/2, y, lw, lh);
+  }
+
+  // Side lines (neon)
+  ctx.shadowColor = C.cyan;
+  ctx.shadowBlur = 10;
+  ctx.strokeStyle = C.cyan;
+  ctx.lineWidth = 2;
+
+  // Left edge line
+  ctx.beginPath();
+  ctx.moveTo(cx - W * 0.1, roadTop);
+  ctx.lineTo(cx - W * 0.45, roadBot);
+  ctx.stroke();
+
+  // Right edge line
+  ctx.beginPath();
+  ctx.moveTo(cx + W * 0.1, roadTop);
+  ctx.lineTo(cx + W * 0.45, roadBot);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Roadside lights
+  for (let i = 0; i < 6; i++) {
+    const t = ((i / 6) + roadOffset / 480) % 1;
+    const y = roadTop + t * (roadBot - roadTop);
+    const side = (i % 2 === 0) ? -1 : 1;
+    const lx = cx + side * (W * 0.1 + t * W * 0.35 + 10);
+    ctx.shadowColor = C.cyan;
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = C.cyan;
+    ctx.fillRect(lx - 2, y - 2, 4, 4);
+    ctx.shadowBlur = 0;
+  }
+}
+
+function glowText(text, x, y, size, color, align = 'center') {
+  ctx.font = `bold ${size}px monospace`;
+  ctx.textAlign = align;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  ctx.shadowBlur = 0;
+}
+
+function drawHUD() {
+  const now = performance.now();
+  const elapsed = (now - startTime) / 1000;
+
+  // WPM calc
+  if (wordCount > 0 && elapsed > 0) {
+    wpm = Math.round((wordCount / elapsed) * 60);
+  }
+
+  // Speed bar background
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(10, 10, 200, 80);
+  ctx.strokeStyle = C.cyanDim;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(10, 10, 200, 80);
+
+  glowText(`${Math.round(speed)} KM/H`, 110, 38, 18, C.cyan);
+  glowText(`WPM: ${wpm}`, 110, 58, 14, C.white);
+  glowText(`Words: ${currentWordIdx}/${TOTAL_WORDS}`, 110, 76, 12, '#888');
+
+  // Progress bar
+  const barX = 10, barY = 98, barW = W - 20, barH = 10;
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(barX, barY, barW, barH);
+  ctx.strokeStyle = C.cyanDim;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(barX, barY, barW, barH);
+
+  ctx.shadowColor = C.cyan;
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = C.cyan;
+  ctx.fillRect(barX + 1, barY + 1, Math.max(0, (barW - 2) * progress), barH - 2);
+  ctx.shadowBlur = 0;
+
+  // Finish flag
+  glowText('🏁', barX + barW - 16, barY + 10, 12, C.white);
+
+  // High score
+  glowText(`BEST: ${highScore} WPM`, W - 10, 28, 12, C.yellow, 'right');
+  glowText(`TIME: ${elapsed.toFixed(1)}s`, W - 10, 46, 12, '#888', 'right');
+}
+
+function drawWord() {
+  if (currentWordIdx >= words.length) return;
+  const word = words[currentWordIdx];
+  const centerX = W / 2;
+  const wordY = H * 0.42;
+
+  // Word box
+  const boxW = 380, boxH = 60;
+  ctx.fillStyle = 'rgba(0,5,20,0.85)';
+  ctx.fillRect(centerX - boxW/2, wordY - 48, boxW, boxH);
+  ctx.strokeStyle = C.cyanDim;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(centerX - boxW/2, wordY - 48, boxW, boxH);
+
+  // Target word
+  ctx.font = 'bold 28px monospace';
+  ctx.textAlign = 'center';
+  const charW = 17;
+  const startX = centerX - (word.length * charW) / 2;
+
+  for (let i = 0; i < word.length; i++) {
+    const cx2 = startX + i * charW + charW / 2;
+    if (i < typedText.length) {
+      // Typed correctly
+      if (typedText[i] === word[i]) {
+        ctx.fillStyle = C.green;
+        ctx.shadowColor = C.green;
+        ctx.shadowBlur = 10;
+      } else {
+        ctx.fillStyle = C.red;
+        ctx.shadowColor = C.red;
+        ctx.shadowBlur = 10;
+      }
+    } else if (i === typedText.length) {
+      // Cursor position
+      ctx.fillStyle = C.cyan;
+      ctx.shadowColor = C.cyan;
+      ctx.shadowBlur = 15;
+      // Cursor underscore
+      ctx.fillRect(cx2 - 6, wordY + 4, 12, 2);
+    } else {
+      ctx.fillStyle = '#446';
+      ctx.shadowBlur = 0;
+    }
+    ctx.fillText(word[i], cx2, wordY);
+    ctx.shadowBlur = 0;
+  }
+
+  // Upcoming word preview
+  if (currentWordIdx + 1 < words.length) {
+    glowText(`next: ${words[currentWordIdx + 1]}`, centerX, wordY + 22, 12, '#334', 'center');
+  }
+}
+
+function drawScanlines() {
+  scanlineOffset = (scanlineOffset + 1) % 4;
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  for (let y = scanlineOffset; y < H; y += 4) {
+    ctx.fillRect(0, y, W, 1);
+  }
+  // CRT vignette
+  const vig = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.8);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.4)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawStart() {
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+  drawRoad(0.016);
+  drawCar(W/2, H * 0.72);
+  drawScanlines();
+
+  glowText('TYPING SPEED RACER', W/2, H*0.2, Math.min(48, W/14), C.cyan);
+  glowText('Type words to accelerate!', W/2, H*0.3, 18, C.white);
+
+  ctx.fillStyle = 'rgba(0,5,20,0.85)';
+  ctx.fillRect(W/2 - 220, H*0.36, 440, 130);
+  ctx.strokeStyle = C.cyanDim;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(W/2 - 220, H*0.36, 440, 130);
+
+  glowText('⚡ Type each word and press SPACE', W/2, H*0.36+28, 14, C.white);
+  glowText('✓ Correct = BOOST   ✗ Wrong = BRAKE', W/2, H*0.36+52, 14, C.green);
+  glowText(`📏 ${TOTAL_WORDS} words per race`, W/2, H*0.36+76, 14, C.yellow);
+  glowText(`🏆 High Score: ${highScore} WPM`, W/2, H*0.36+100, 14, C.yellow);
+
+  // Blink press enter
+  if (Math.floor(performance.now() / 500) % 2 === 0) {
+    glowText('[ PRESS ENTER OR TAP TO START ]', W/2, H*0.58, 18, C.cyan);
+  }
+  drawScanlines();
+}
+
+function drawGameOver() {
+  ctx.fillStyle = 'rgba(5,5,16,0.92)';
+  ctx.fillRect(0, 0, W, H);
+
+  const isNewHS = finalWPM > 0 && finalWPM >= highScore;
+  glowText('RACE COMPLETE!', W/2, H*0.25, Math.min(46, W/13), C.cyan);
+
+  ctx.fillStyle = 'rgba(0,5,20,0.9)';
+  ctx.fillRect(W/2 - 200, H*0.33, 400, 180);
+  ctx.strokeStyle = C.cyanDim;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(W/2 - 200, H*0.33, 400, 180);
+
+  glowText(`WPM: ${finalWPM}`, W/2, H*0.33+42, 34, C.green);
+  glowText(`Time: ${finalTime.toFixed(1)}s`, W/2, H*0.33+76, 20, C.white);
+  glowText(`Words: ${TOTAL_WORDS}`, W/2, H*0.33+100, 16, C.white);
+  if (isNewHS) {
+    glowText('🏆 NEW HIGH SCORE!', W/2, H*0.33+130, 20, C.yellow);
+  } else {
+    glowText(`Best: ${highScore} WPM`, W/2, H*0.33+130, 16, C.yellow);
+  }
+
+  // Play again button
+  const btnX = W/2 - 100, btnY = H*0.68, btnW = 200, btnH = 44;
+  ctx.fillStyle = C.cyanDim;
+  ctx.fillRect(btnX, btnY, btnW, btnH);
+  ctx.strokeStyle = C.cyan;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(btnX, btnY, btnW, btnH);
+  glowText('PLAY AGAIN  [R]', W/2, btnY + 28, 18, C.cyan);
+
+  drawScanlines();
+}
+
+let lastFrame = 0;
+function loop(ts) {
+  const dt = Math.min((ts - lastFrame) / 1000, 0.05);
+  lastFrame = ts;
+
+  if (state === 'start') {
+    drawStart();
+    requestAnimationFrame(loop);
+    return;
+  }
+  if (state === 'gameover') {
+    drawGameOver();
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  // Playing
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Shake
+  if (shakeTimer > 0) {
+    shakeX = (Math.random() - 0.5) * 8;
+    shakeTimer -= dt;
+    if (shakeTimer <= 0) shakeX = 0;
+  }
+  ctx.save();
+  ctx.translate(shakeX, 0);
+
+  drawRoad(dt);
+
+  // Car position
+  carBob += dt * 8;
+  const carBobY = Math.sin(carBob) * (speed / maxSpeed) * 2;
+  const carXPos = W / 2;
+  const carYPos = H * 0.72 + carBobY;
+
+  drawCar(carXPos, carYPos);
+  updateParticles(dt);
+  drawParticles();
+  drawWord();
+  drawHUD();
+
+  ctx.restore();
+  drawScanlines();
+
+  // Speed physics
+  if (speed > 0) {
+    speed = Math.max(0, speed - 18 * dt);
+  }
+
+  // Progress
+  progress = currentWordIdx / TOTAL_WORDS;
+
+  requestAnimationFrame(loop);
+}
+
+// Input handling
+input.addEventListener('input', (e) => {
+  if (state !== 'playing') return;
+  typedText = input.value;
+});
+
+input.addEventListener('keydown', (e) => {
+  if (state !== 'playing') return;
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    const word = words[currentWordIdx];
+    const typed = typedText.trim();
+    if (typed === word) {
+      // Correct!
+      wordCount++;
+      const boost = 40 + Math.random() * 20;
+      speed = Math.min(maxSpeed, speed + boost);
+      spawnParticle(W / 2, H * 0.72, C.cyan);
+      spawnParticle(W / 2 + 20, H * 0.72, C.green);
+    } else if (typed.length > 0) {
+      // Wrong
+      speed = Math.max(0, speed - 30);
+      shakeX = 6; shakeTimer = 0.3;
+      spawnParticle(W / 2, H * 0.72, C.red);
+    } else {
+      return; // empty, ignore
+    }
+    currentWordIdx++;
+    typedText = '';
+    input.value = '';
+
+    if (currentWordIdx >= TOTAL_WORDS) {
+      // Done!
+      const elapsed = (performance.now() - startTime) / 1000;
+      finalTime = elapsed;
+      finalWPM = Math.round((wordCount / elapsed) * 60);
+      if (finalWPM > highScore) {
+        highScore = finalWPM;
+        localStorage.setItem(HS_KEY, highScore);
+      }
+      state = 'gameover';
+    }
+  }
+});
+
+// Global keys
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'r' || e.key === 'R') {
+    if (state !== 'playing') startGame();
+  }
+  if (e.key === 'Enter' && state === 'start') startGame();
+  if (e.key === 'Enter' && state === 'gameover') startGame();
+});
+
+// Touch / click
+canvas.addEventListener('click', (e) => {
+  if (state === 'start') { startGame(); return; }
+  if (state === 'gameover') {
+    const btnX = W/2 - 100, btnY = H*0.68, btnW = 200, btnH = 44;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
+      startGame();
+    }
+  }
+  if (state === 'playing') {
+    input.focus();
+  }
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  if (state === 'start') { startGame(); return; }
+  if (state === 'gameover') { startGame(); return; }
+  if (state === 'playing') { input.focus(); }
+}, { passive: false });
+
+// PostMessage bridge (PixelForge gamepad)
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'GAMEPAD_KEY') {
+    const ev = new KeyboardEvent(e.data.down ? 'keydown' : 'keyup', {
+      key: e.data.key, code: e.data.key, bubbles: true, cancelable: true
+    });
+    window.dispatchEvent(ev);
+  }
+});
+
+initStars();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
