@@ -74,12 +74,12 @@ function update(){}
 
 // Per-game controls metadata
 const CURATED_CONTROLS: Record<string, { key: string; action: string }[]> = {
-  'builtin-racing':    [{ key: '← →', action: 'Change lane' }, { key: 'A D', action: 'Change lane' }, { key: '🎮 D-pad', action: 'Lane change' }, { key: 'R', action: 'Restart' }],
-  'builtin-shooter':  [{ key: 'Arrows', action: 'Move ship' }, { key: 'Space', action: 'Fire' }, { key: '🎮 Stick+A', action: 'Move & fire' }, { key: 'R', action: 'Restart' }],
-  'builtin-snake':    [{ key: 'Arrows', action: 'Steer' }, { key: 'WASD', action: 'Steer' }, { key: '🎮 D-pad', action: 'Steer' }, { key: 'R', action: 'Restart' }],
-  'builtin-asteroids':[{ key: '← →', action: 'Rotate' }, { key: '↑', action: 'Thrust' }, { key: 'Space', action: 'Shoot' }, { key: '🎮 L-stick+A', action: 'Play' }, { key: 'R', action: 'Restart' }],
-  'builtin-jumper':   [{ key: '← →', action: 'Move' }, { key: 'Space / ↑', action: 'Jump x2' }, { key: '🎮 Stick+A', action: 'Move & jump' }, { key: 'R', action: 'Restart' }],
-  'builtin-breakout': [{ key: '← →', action: 'Move paddle' }, { key: 'Mouse', action: 'Move paddle' }, { key: '🎮 L-stick', action: 'Move' }, { key: 'R', action: 'Restart' }],
+  'builtin-snake':       [{ key: 'Arrows', action: 'Steer' }, { key: 'WASD', action: 'Steer' }, { key: '🎮 D-pad', action: 'Steer' }, { key: 'R', action: 'Restart' }],
+  'builtin-asteroids':   [{ key: '← →', action: 'Rotate' }, { key: '↑', action: 'Thrust' }, { key: 'Space', action: 'Shoot' }, { key: '🎮 L-stick+A', action: 'Play' }, { key: 'R', action: 'Restart' }],
+  'builtin-jumper':      [{ key: '← →', action: 'Move' }, { key: 'Space / ↑', action: 'Jump x2' }, { key: '🎮 Stick+A', action: 'Move & jump' }, { key: 'R', action: 'Restart' }],
+  'builtin-breakout':    [{ key: '← →', action: 'Move paddle' }, { key: 'Mouse', action: 'Move paddle' }, { key: '🎮 L-stick', action: 'Move' }, { key: 'R', action: 'Restart' }],
+  'builtin-math-rush':   [{ key: '1–4', action: 'Pick answer' }, { key: 'Tap', action: 'Pick answer (mobile)' }, { key: 'R', action: 'Restart' }],
+  'builtin-space-battle':[{ key: '← →', action: 'Move ship' }, { key: 'Z / Space', action: 'Fire' }, { key: '🎮 Stick+A', action: 'Play' }, { key: 'R', action: 'Restart' }],
 }
 
 // Which key each touch button fires
@@ -186,7 +186,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
     ref: iframeRef,
     sandbox: 'allow-scripts allow-same-origin' as const,
     title: game.title,
-    style: { border: 'none', width: '100%', height: '100%', display: 'block' } as React.CSSProperties,
+    style: { border: 'none', position: 'absolute' as const, inset: 0, width: '100%', height: '100%', display: 'block' } as React.CSSProperties,
   }
 
   const controls = CURATED_CONTROLS[game.id] ?? []
