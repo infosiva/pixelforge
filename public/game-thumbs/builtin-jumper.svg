@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0c0a1e"/>
+      <stop offset="100%" stop-color="#1a0a2e"/>
+    </linearGradient>
+    <linearGradient id="platform" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <!-- Background parallax hills -->
+  <ellipse cx="80" cy="200" rx="120" ry="60" fill="#1e1b4b" opacity="0.4"/>
+  <ellipse cx="240" cy="200" rx="100" ry="50" fill="#1e1b4b" opacity="0.3"/>
+  <!-- Platforms -->
+  <rect x="10" y="155" width="90" height="10" rx="4" fill="url(#platform)" stroke="#8b5cf6" stroke-width="1.5"/>
+  <rect x="120" y="130" width="80" height="10" rx="4" fill="url(#platform)" stroke="#8b5cf6" stroke-width="1.5"/>
+  <rect x="220" y="105" width="80" height="10" rx="4" fill="url(#platform)" stroke="#8b5cf6" stroke-width="1.5"/>
+  <rect x="60" y="80" width="70" height="10" rx="4" fill="url(#platform)" stroke="#a78bfa" stroke-width="2"/>
+  <rect x="190" y="55" width="60" height="10" rx="4" fill="url(#platform)" stroke="#a78bfa" stroke-width="2"/>
+  <!-- Spike hazard -->
+  <polygon points="200,155 208,143 216,155" fill="#ef4444"/>
+  <polygon points="215,155 223,143 231,155" fill="#ef4444"/>
+  <!-- Gem collectibles -->
+  <polygon points="250,95 258,80 266,95 258,102" fill="#fbbf24" stroke="#fde68a" stroke-width="1" filter="url(#glow)"/>
+  <polygon points="90,70 97,57 104,70 97,77" fill="#34d399" stroke="#a7f3d0" stroke-width="1" filter="url(#glow)"/>
+  <polygon points="140,46 146,35 152,46 146,52" fill="#60a5fa" stroke="#bfdbfe" stroke-width="1" filter="url(#glow)"/>
+  <!-- Player character (pixel man) -->
+  <rect x="145" y="107" width="14" height="14" rx="2" fill="#f472b6" stroke="#fbcfe8" stroke-width="1"/>
+  <rect x="148" y="104" width="8" height="8" rx="4" fill="#fde68a"/>
+  <rect x="145" y="121" width="5" height="8" rx="1" fill="#ec4899"/>
+  <rect x="154" y="121" width="5" height="8" rx="1" fill="#ec4899"/>
+  <!-- Jump arc indicator -->
+  <path d="M 152 115 Q 200 60 248 100" fill="none" stroke="#f472b6" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.5"/>
+  <!-- Score -->
+  <text x="8" y="15" font-family="monospace" font-size="9" fill="#c4b5fd" opacity="0.8">SCORE: 5820</text>
+  <text x="160" y="175" font-family="monospace" font-size="10" fill="#a78bfa" text-anchor="middle" opacity="0.8">PIXEL JUMPER</text>
+</svg>

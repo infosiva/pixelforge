@@ -4,19 +4,11 @@ import ArcadeGrid from '@/components/ArcadeGrid'
 import HeroSection from '@/components/HeroSection'
 import { listGames } from '@/lib/db'
 import { CURATED_GAMES } from '@/lib/curatedGames'
-import type { GameGenre } from '@/lib/types'
-
-const DEMO_GAMES = [
-  { id: 'demo-1', title: 'Space Blaster',  description: 'Survive waves of alien invaders. How long can you last?',           prompt: 'space shooter',        genre: 'shooter'    as GameGenre, ageRating: '8+'  as const, status: 'published' as const, authorId: 'ai', authorName: 'PixelForge AI', thumbnailUrl: '', playCount: 1243, likeCount: 89,  remixCount: 12, createdAt: '', htmlUrl: '', publishedAt: '' },
-  { id: 'demo-2', title: 'Neon Runner',    description: 'Endless runner in a cyberpunk city. Dodge, jump, survive.',         prompt: 'endless runner neon',  genre: 'platformer' as GameGenre, ageRating: '8+'  as const, status: 'published' as const, authorId: 'ai', authorName: 'PixelForge AI', thumbnailUrl: '', playCount: 987,  likeCount: 71,  remixCount: 8,  createdAt: '', htmlUrl: '', publishedAt: '' },
-  { id: 'demo-4', title: 'Dungeon Quest',  description: 'Top-down RPG. Fight monsters, collect loot, find the exit.',       prompt: 'dungeon crawler rpg',  genre: 'rpg'        as GameGenre, ageRating: '12+' as const, status: 'published' as const, authorId: 'ai', authorName: 'PixelForge AI', thumbnailUrl: '', playCount: 654,  likeCount: 55,  remixCount: 6,  createdAt: '', htmlUrl: '', publishedAt: '' },
-  { id: 'demo-5', title: 'Puzzle Rush',    description: 'Match colours against the clock. 30 levels of brain-bending fun.', prompt: 'colour match puzzle',  genre: 'puzzle'     as GameGenre, ageRating: '8+'  as const, status: 'published' as const, authorId: 'ai', authorName: 'PixelForge AI', thumbnailUrl: '', playCount: 876,  likeCount: 62,  remixCount: 9,  createdAt: '', htmlUrl: '', publishedAt: '' },
-]
 
 export default async function HomePage() {
   let liveGames: Awaited<ReturnType<typeof listGames>> = []
   try { liveGames = await listGames(12) } catch {}
-  const allGames = [...CURATED_GAMES, ...liveGames, ...DEMO_GAMES]
+  const allGames = [...CURATED_GAMES, ...liveGames]
 
   return (
     <>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#030712"/>
+      <stop offset="100%" stop-color="#0c0518"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <!-- Stars -->
+  <circle cx="10" cy="10" r="1" fill="white" opacity="0.7"/>
+  <circle cx="40" cy="30" r="0.5" fill="white" opacity="0.5"/>
+  <circle cx="90" cy="15" r="1" fill="white" opacity="0.6"/>
+  <circle cx="150" cy="8" r="0.5" fill="white" opacity="0.8"/>
+  <circle cx="200" cy="22" r="1" fill="white" opacity="0.5"/>
+  <circle cx="260" cy="12" r="0.5" fill="white" opacity="0.7"/>
+  <circle cx="300" cy="40" r="1" fill="white" opacity="0.4"/>
+  <circle cx="15" cy="130" r="0.5" fill="white" opacity="0.6"/>
+  <circle cx="310" cy="100" r="1" fill="white" opacity="0.5"/>
+  <!-- Large asteroid -->
+  <polygon points="70,40 100,25 130,35 135,65 115,80 80,78 55,65" fill="#374151" stroke="#6b7280" stroke-width="2"/>
+  <polygon points="75,50 95,45 115,55 110,68 85,70" fill="#1f2937" stroke="#4b5563" stroke-width="1"/>
+  <!-- Medium asteroid -->
+  <polygon points="220,55 240,40 265,50 270,75 248,85 225,78" fill="#292524" stroke="#57534e" stroke-width="2"/>
+  <!-- Small asteroid chunks -->
+  <polygon points="170,120 185,110 195,118 190,130 175,132" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
+  <polygon points="40,130 55,122 62,132 55,142 43,140" fill="#292524" stroke="#57534e" stroke-width="1.5"/>
+  <!-- Player ship (triangle) -->
+  <polygon points="160,155 148,175 172,175" fill="none" stroke="#38bdf8" stroke-width="2" filter="url(#glow)"/>
+  <line x1="152" y1="174" x2="149" y2="180" stroke="#f97316" stroke-width="2" opacity="0.8"/>
+  <line x1="168" y1="174" x2="171" y2="180" stroke="#f97316" stroke-width="2" opacity="0.8"/>
+  <!-- Bullets -->
+  <line x1="160" y1="152" x2="160" y2="135" stroke="#38bdf8" stroke-width="2.5" filter="url(#glow)"/>
+  <line x1="160" y1="128" x2="160" y2="115" stroke="#38bdf8" stroke-width="2" filter="url(#glow)" opacity="0.6"/>
+  <!-- Hit flash on large asteroid -->
+  <circle cx="95" cy="75" r="8" fill="#fef08a" opacity="0.3" filter="url(#glow)"/>
+  <!-- HUD -->
+  <text x="8" y="15" font-family="monospace" font-size="9" fill="#38bdf8" opacity="0.8">SCORE: 3200</text>
+  <text x="240" y="15" font-family="monospace" font-size="9" fill="#fbbf24" opacity="0.8">WAVE 4</text>
+  <text x="160" y="175" font-family="monospace" font-size="10" fill="#7dd3fc" text-anchor="middle" opacity="0.7">ASTEROID STORM</text>
+</svg>

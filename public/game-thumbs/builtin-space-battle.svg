@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#030712"/>
+      <stop offset="100%" stop-color="#0f0a2e"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="explosion" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#991b1b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <!-- Stars -->
+  <circle cx="12" cy="8" r="1" fill="white" opacity="0.8"/>
+  <circle cx="45" cy="22" r="0.5" fill="white" opacity="0.6"/>
+  <circle cx="80" cy="5" r="1" fill="white" opacity="0.7"/>
+  <circle cx="130" cy="18" r="0.5" fill="white" opacity="0.5"/>
+  <circle cx="200" cy="10" r="1" fill="white" opacity="0.8"/>
+  <circle cx="250" cy="30" r="0.5" fill="white" opacity="0.6"/>
+  <circle cx="300" cy="8" r="1" fill="white" opacity="0.7"/>
+  <circle cx="310" cy="50" r="0.5" fill="white" opacity="0.5"/>
+  <circle cx="18" cy="80" r="1" fill="white" opacity="0.4"/>
+  <circle cx="270" cy="70" r="0.5" fill="white" opacity="0.6"/>
+  <!-- Explosion -->
+  <circle cx="240" cy="55" r="22" fill="url(#explosion)" opacity="0.8"/>
+  <!-- Enemy ships row -->
+  <polygon points="60,30 75,50 45,50" fill="#7f1d1d" stroke="#ef4444" stroke-width="1.5"/>
+  <polygon points="120,20 135,40 105,40" fill="#7f1d1d" stroke="#ef4444" stroke-width="1.5"/>
+  <polygon points="180,28 195,48 165,48" fill="#3b0764" stroke="#a855f7" stroke-width="1.5"/>
+  <!-- Laser beams from player -->
+  <line x1="155" y1="145" x2="120" y2="40" stroke="#38bdf8" stroke-width="2" opacity="0.8" filter="url(#glow)"/>
+  <line x1="165" y1="145" x2="240" y2="55" stroke="#38bdf8" stroke-width="2" opacity="0.8" filter="url(#glow)"/>
+  <!-- Player ship -->
+  <polygon points="160,170 140,145 180,145" fill="#0ea5e9" stroke="#7dd3fc" stroke-width="2" filter="url(#glow)"/>
+  <polygon points="160,170 155,155 165,155" fill="#fbbf24"/>
+  <!-- Engine glow -->
+  <ellipse cx="160" cy="172" rx="6" ry="4" fill="#f97316" opacity="0.7" filter="url(#glow)"/>
+  <!-- Score HUD -->
+  <text x="8" y="170" font-family="monospace" font-size="9" fill="#38bdf8" opacity="0.8">SCORE: 4800</text>
+  <text x="240" y="170" font-family="monospace" font-size="9" fill="#fbbf24" opacity="0.8">WAVE 3</text>
+  <!-- Title -->
+  <text x="160" y="14" font-family="monospace" font-size="10" fill="#c4b5fd" text-anchor="middle" opacity="0.8">STELLAR ASSAULT</text>
+</svg>

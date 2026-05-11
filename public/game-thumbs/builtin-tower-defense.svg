@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1a0a"/>
+      <stop offset="100%" stop-color="#1a1a0a"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <!-- Grid cells -->
+  <g stroke="#1a2e1a" stroke-width="1">
+    <line x1="40" y1="0" x2="40" y2="180"/>
+    <line x1="80" y1="0" x2="80" y2="180"/>
+    <line x1="120" y1="0" x2="120" y2="180"/>
+    <line x1="160" y1="0" x2="160" y2="180"/>
+    <line x1="200" y1="0" x2="200" y2="180"/>
+    <line x1="240" y1="0" x2="240" y2="180"/>
+    <line x1="280" y1="0" x2="280" y2="180"/>
+    <line x1="0" y1="45" x2="320" y2="45"/>
+    <line x1="0" y1="90" x2="320" y2="90"/>
+    <line x1="0" y1="135" x2="320" y2="135"/>
+  </g>
+  <!-- Enemy path (highlighted cells) -->
+  <rect x="0" y="0" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="40" y="0" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="80" y="0" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="80" y="45" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="80" y="90" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="120" y="90" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="160" y="90" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="200" y="90" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="200" y="135" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="240" y="135" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <rect x="280" y="135" width="40" height="45" fill="#1a2e10" opacity="0.6"/>
+  <!-- Path arrows -->
+  <text x="20" y="27" font-family="monospace" font-size="10" fill="#4ade80" text-anchor="middle" opacity="0.5">→</text>
+  <text x="100" y="72" font-family="monospace" font-size="10" fill="#4ade80" text-anchor="middle" opacity="0.5">↓</text>
+  <text x="180" y="115" font-family="monospace" font-size="10" fill="#4ade80" text-anchor="middle" opacity="0.5">→</text>
+  <text x="260" y="158" font-family="monospace" font-size="10" fill="#4ade80" text-anchor="middle" opacity="0.5">→</text>
+  <!-- Tower 1: Laser (cyan, tall) -->
+  <rect x="162" y="4" width="36" height="36" rx="4" fill="#0c4a6e" stroke="#0ea5e9" stroke-width="2"/>
+  <rect x="174" y="8" width="12" height="20" rx="2" fill="#0284c7" stroke="#38bdf8" stroke-width="1"/>
+  <circle cx="180" cy="18" r="5" fill="#7dd3fc" filter="url(#glow)"/>
+  <!-- Laser beam -->
+  <line x1="180" y1="40" x2="100" y2="112" stroke="#38bdf8" stroke-width="1.5" opacity="0.7" filter="url(#glow)"/>
+  <!-- Tower 2: Cannon (orange) -->
+  <rect x="202" y="4" width="36" height="36" rx="4" fill="#7c2d12" stroke="#ea580c" stroke-width="2"/>
+  <rect x="215" y="6" width="10" height="24" rx="3" fill="#9a3412" stroke="#f97316" stroke-width="1"/>
+  <circle cx="220" cy="22" r="6" fill="#fed7aa" opacity="0.6"/>
+  <!-- Cannon shot -->
+  <circle cx="170" cy="95" r="4" fill="#f97316" filter="url(#glow)"/>
+  <!-- Tower 3: Slow (purple) -->
+  <rect x="2" y="94" width="36" height="36" rx="4" fill="#4c1d95" stroke="#8b5cf6" stroke-width="2"/>
+  <circle cx="20" cy="112" r="10" fill="#7c3aed" stroke="#a78bfa" stroke-width="1" filter="url(#glow)"/>
+  <!-- Slow field -->
+  <circle cx="20" cy="112" r="22" fill="none" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+  <!-- Enemies on path -->
+  <rect x="48" y="10" width="18" height="18" rx="3" fill="#b91c1c" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="57" y="23" font-family="monospace" font-size="9" fill="white" text-anchor="middle">⚔</text>
+  <rect x="88" y="55" width="18" height="18" rx="3" fill="#b91c1c" stroke="#fca5a5" stroke-width="1.5" opacity="0.7"/>
+  <text x="97" y="68" font-family="monospace" font-size="9" fill="white" text-anchor="middle">⚔</text>
+  <!-- Gold HUD -->
+  <text x="8" y="175" font-family="monospace" font-size="9" fill="#fbbf24" opacity="0.8">💰 Gold: 350  Wave 3/10</text>
+  <text x="240" y="175" font-family="monospace" font-size="9" fill="#4ade80" opacity="0.8">HP: ████░</text>
+</svg>

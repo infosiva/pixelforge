@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0a0a"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="atk" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7f1d1d"/>
+      <stop offset="100%" stop-color="#450a0a"/>
+    </linearGradient>
+    <linearGradient id="def" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0a1a3e"/>
+    </linearGradient>
+    <linearGradient id="heal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="100%" stop-color="#052e16"/>
+    </linearGradient>
+    <linearGradient id="crit" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#431407"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <!-- Arena divider -->
+  <line x1="0" y1="90" x2="320" y2="90" stroke="#374151" stroke-width="1" stroke-dasharray="6 4"/>
+  <!-- Enemy HP bar -->
+  <rect x="60" y="10" width="200" height="10" rx="5" fill="#1f2937"/>
+  <rect x="60" y="10" width="120" height="10" rx="5" fill="#dc2626"/>
+  <text x="160" y="8" font-family="monospace" font-size="8" fill="#fca5a5" text-anchor="middle">ENEMY HP</text>
+  <!-- Player HP bar -->
+  <rect x="60" y="165" width="200" height="10" rx="5" fill="#1f2937"/>
+  <rect x="60" y="165" width="170" height="10" rx="5" fill="#16a34a"/>
+  <text x="160" y="178" font-family="monospace" font-size="8" fill="#86efac" text-anchor="middle">YOUR HP</text>
+  <!-- Enemy avatar -->
+  <circle cx="160" cy="48" r="22" fill="#3b0764" stroke="#7c3aed" stroke-width="2"/>
+  <text x="160" y="55" font-family="monospace" font-size="20" text-anchor="middle">👾</text>
+  <!-- VS label -->
+  <text x="160" y="96" font-family="monospace" font-size="10" fill="#6b7280" text-anchor="middle">VS</text>
+  <!-- Player cards -->
+  <!-- Attack card -->
+  <rect x="12" y="100" width="60" height="72" rx="6" fill="url(#atk)" stroke="#ef4444" stroke-width="2"/>
+  <text x="42" y="122" font-family="monospace" font-size="16" text-anchor="middle">⚔️</text>
+  <text x="42" y="140" font-family="monospace" font-size="8" fill="#fca5a5" text-anchor="middle">ATTACK</text>
+  <text x="42" y="154" font-family="monospace" font-size="11" fill="#fef2f2" text-anchor="middle" font-weight="bold">-20</text>
+  <text x="42" y="165" font-family="monospace" font-size="7" fill="#f87171" text-anchor="middle">DMG</text>
+  <!-- Defense card -->
+  <rect x="80" y="100" width="60" height="72" rx="6" fill="url(#def)" stroke="#3b82f6" stroke-width="2"/>
+  <text x="110" y="122" font-family="monospace" font-size="16" text-anchor="middle">🛡️</text>
+  <text x="110" y="140" font-family="monospace" font-size="8" fill="#93c5fd" text-anchor="middle">DEFEND</text>
+  <text x="110" y="154" font-family="monospace" font-size="11" fill="#eff6ff" text-anchor="middle" font-weight="bold">+15</text>
+  <text x="110" y="165" font-family="monospace" font-size="7" fill="#60a5fa" text-anchor="middle">BLOCK</text>
+  <!-- Heal card -->
+  <rect x="148" y="100" width="60" height="72" rx="6" fill="url(#heal)" stroke="#22c55e" stroke-width="2"/>
+  <text x="178" y="122" font-family="monospace" font-size="16" text-anchor="middle">💊</text>
+  <text x="178" y="140" font-family="monospace" font-size="8" fill="#86efac" text-anchor="middle">HEAL</text>
+  <text x="178" y="154" font-family="monospace" font-size="11" fill="#f0fdf4" text-anchor="middle" font-weight="bold">+25</text>
+  <text x="178" y="165" font-family="monospace" font-size="7" fill="#4ade80" text-anchor="middle">HP</text>
+  <!-- Crit card (selected/glowing) -->
+  <rect x="216" y="96" width="62" height="76" rx="6" fill="url(#crit)" stroke="#f59e0b" stroke-width="2.5" filter="url(#glow)"/>
+  <text x="247" y="120" font-family="monospace" font-size="16" text-anchor="middle">💥</text>
+  <text x="247" y="138" font-family="monospace" font-size="8" fill="#fde68a" text-anchor="middle">CRIT</text>
+  <text x="247" y="152" font-family="monospace" font-size="11" fill="#fffbeb" text-anchor="middle" font-weight="bold">×2!</text>
+  <text x="247" y="163" font-family="monospace" font-size="7" fill="#fbbf24" text-anchor="middle">DAMAGE</text>
+  <!-- Title -->
+  <text x="160" y="93" font-family="monospace" font-size="9" fill="#c4b5fd" text-anchor="middle" opacity="0.6">CARD BATTLE</text>
+</svg>

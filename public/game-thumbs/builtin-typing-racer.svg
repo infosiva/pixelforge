@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c0c0c"/>
+      <stop offset="100%" stop-color="#0a1a2e"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <!-- Road tracks -->
+  <rect x="10" y="60" width="300" height="40" fill="#1c1c1c" rx="4"/>
+  <rect x="10" y="108" width="300" height="40" fill="#1c1c1c" rx="4"/>
+  <!-- Lane dashes -->
+  <rect x="20" y="79" width="20" height="4" rx="2" fill="#fbbf24" opacity="0.5"/>
+  <rect x="60" y="79" width="20" height="4" rx="2" fill="#fbbf24" opacity="0.5"/>
+  <rect x="100" y="79" width="20" height="4" rx="2" fill="#fbbf24" opacity="0.5"/>
+  <rect x="140" y="79" width="20" height="4" rx="2" fill="#fbbf24" opacity="0.5"/>
+  <rect x="180" y="79" width="20" height="4" rx="2" fill="#fbbf24" opacity="0.5"/>
+  <rect x="220" y="79" width="20" height="4" rx="2" fill="#fbbf24" opacity="0.5"/>
+  <rect x="260" y="79" width="20" height="4" rx="2" fill="#fbbf24" opacity="0.5"/>
+  <!-- Cars -->
+  <!-- Player car (green, more progress) -->
+  <rect x="140" y="63" width="40" height="28" rx="5" fill="#15803d"/>
+  <rect x="146" y="67" width="28" height="12" rx="2" fill="#bbf7d0" opacity="0.5"/>
+  <circle cx="147" cy="87" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="1"/>
+  <circle cx="173" cy="87" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="1"/>
+  <!-- Opponent car (red, behind) -->
+  <rect x="60" y="63" width="40" height="28" rx="5" fill="#b91c1c"/>
+  <rect x="66" y="67" width="28" height="12" rx="2" fill="#fecaca" opacity="0.4"/>
+  <circle cx="67" cy="87" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="1"/>
+  <circle cx="93" cy="87" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="1"/>
+  <!-- Player car 2 (blue, behind) -->
+  <rect x="80" y="111" width="40" height="28" rx="5" fill="#1d4ed8"/>
+  <rect x="86" y="115" width="28" height="12" rx="2" fill="#bfdbfe" opacity="0.4"/>
+  <circle cx="87" cy="135" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="1"/>
+  <circle cx="113" cy="135" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="1"/>
+  <!-- Word to type -->
+  <rect x="60" y="18" width="200" height="32" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+  <!-- Typed part -->
+  <text x="75" y="39" font-family="monospace" font-size="16" fill="#4ade80">SUPE</text>
+  <!-- Current char highlight -->
+  <rect x="127" y="21" width="11" height="24" rx="2" fill="#1d4ed8" opacity="0.6"/>
+  <text x="132" y="39" font-family="monospace" font-size="16" fill="#93c5fd">R</text>
+  <!-- Remaining -->
+  <text x="143" y="39" font-family="monospace" font-size="16" fill="#64748b">SONIC</text>
+  <!-- WPM badge -->
+  <rect x="260" y="18" width="50" height="32" rx="6" fill="#1e1b4b" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="285" y="30" font-family="monospace" font-size="8" fill="#a78bfa" text-anchor="middle">WPM</text>
+  <text x="285" y="44" font-family="monospace" font-size="13" fill="#c4b5fd" text-anchor="middle" font-weight="bold">87</text>
+  <!-- Title -->
+  <text x="160" y="172" font-family="monospace" font-size="10" fill="#38bdf8" text-anchor="middle" opacity="0.8">TYPING RACER</text>
+</svg>

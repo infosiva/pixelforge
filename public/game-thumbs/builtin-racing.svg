@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1a0c"/>
+      <stop offset="100%" stop-color="#1a1a0c"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="1.5"/></filter>
+  </defs>
+  <rect width="320" height="180" fill="url(#bg)"/>
+  <!-- Road -->
+  <rect x="60" y="0" width="200" height="180" fill="#1c1c1c"/>
+  <!-- Lane markings -->
+  <rect x="155" y="0" width="10" height="30" rx="2" fill="#fbbf24" opacity="0.8"/>
+  <rect x="155" y="45" width="10" height="30" rx="2" fill="#fbbf24" opacity="0.8"/>
+  <rect x="155" y="90" width="10" height="30" rx="2" fill="#fbbf24" opacity="0.8"/>
+  <rect x="155" y="135" width="10" height="30" rx="2" fill="#fbbf24" opacity="0.8"/>
+  <!-- Shoulder lines -->
+  <rect x="60" y="0" width="4" height="180" fill="#4b5563"/>
+  <rect x="256" y="0" width="4" height="180" fill="#4b5563"/>
+  <!-- Grass -->
+  <rect x="0" y="0" width="60" height="180" fill="#14532d"/>
+  <rect x="260" y="0" width="60" height="180" fill="#14532d"/>
+  <!-- Grass stripes -->
+  <rect x="0" y="0" width="30" height="180" fill="#166534" opacity="0.5"/>
+  <rect x="260" y="0" width="30" height="180" fill="#166534" opacity="0.5"/>
+  <!-- Traffic cars (top) -->
+  <rect x="80" y="20" width="36" height="56" rx="5" fill="#dc2626"/>
+  <rect x="85" y="25" width="26" height="14" rx="2" fill="#bfdbfe" opacity="0.6"/>
+  <circle cx="86" cy="70" r="6" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5"/>
+  <circle cx="112" cy="70" r="6" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="190" y="40" width="36" height="56" rx="5" fill="#2563eb"/>
+  <rect x="195" y="45" width="26" height="14" rx="2" fill="#bfdbfe" opacity="0.6"/>
+  <circle cx="196" cy="90" r="6" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5"/>
+  <circle cx="222" cy="90" r="6" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- Player car -->
+  <rect x="130" y="115" width="40" height="60" rx="6" fill="#f59e0b"/>
+  <rect x="135" y="120" width="30" height="16" rx="2" fill="#bfdbfe" opacity="0.7"/>
+  <circle cx="136" cy="170" r="7" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="164" cy="170" r="7" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+  <!-- Speed lines -->
+  <line x1="70" y1="150" x2="60" y2="150" stroke="#fbbf24" stroke-width="1.5" opacity="0.6"/>
+  <line x1="70" y1="158" x2="60" y2="158" stroke="#fbbf24" stroke-width="1" opacity="0.4"/>
+  <!-- HUD -->
+  <text x="160" y="14" font-family="monospace" font-size="10" fill="#fbbf24" text-anchor="middle" opacity="0.9">TURBO DRIFT</text>
+  <text x="8" y="175" font-family="monospace" font-size="9" fill="#86efac" opacity="0.8">TOP: 2840m</text>
+</svg>
