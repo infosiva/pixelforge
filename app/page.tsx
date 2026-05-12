@@ -135,6 +135,12 @@ export default async function HomePage() {
 
       </div>
 
+      {/* ── MOBILE FAB ── */}
+      <Link href="/create" className="mobile-fab" aria-label="Build a game">
+        <Wand2 size={22} />
+        <span>Build a Game</span>
+      </Link>
+
       <style>{`
         .pf-bg {
           position: fixed; inset: 0; z-index: 0;
@@ -185,7 +191,7 @@ export default async function HomePage() {
 
         /* TICKER */
         .ticker-bar {
-          display: flex; align-items: center; gap: 12;
+          display: flex; align-items: center; gap: 12px;
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.07);
           border-radius: 10px; padding: 10px 16px;
@@ -216,11 +222,11 @@ export default async function HomePage() {
 
         /* STATS */
         .stats-row {
-          display: flex; gap: 12; flex-wrap: wrap;
+          display: flex; gap: 12px; flex-wrap: wrap;
           margin-bottom: 40px;
         }
         .stat-chip {
-          display: flex; align-items: center; gap: 8;
+          display: flex; align-items: center; gap: 8px;
           padding: 10px 16px; border-radius: 12px;
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.07);
@@ -261,7 +267,7 @@ export default async function HomePage() {
           line-height: 1.6; margin-bottom: 20px;
         }
         .build-cta-examples {
-          display: flex; flex-wrap: wrap; gap: 8; margin-bottom: 24px;
+          display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
         }
         .example-pill {
           font-size: 12px; color: rgba(255,255,255,0.45);
@@ -271,7 +277,7 @@ export default async function HomePage() {
           font-style: italic;
         }
         .build-cta-btn {
-          display: inline-flex; align-items: center; gap: 8;
+          display: inline-flex; align-items: center; gap: 8px;
           padding: 14px 28px; border-radius: 12px;
           background: linear-gradient(135deg, #7c3aed, #ec4899);
           color: #fff; font-weight: 800; font-size: 15px;
@@ -289,7 +295,7 @@ export default async function HomePage() {
           box-shadow: 0 0 60px rgba(124,58,237,0.15);
         }
         .code-dots {
-          display: flex; gap: 6; padding: 12px 16px;
+          display: flex; gap: 6px; padding: 12px 16px;
           border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .code-dots span {
@@ -298,7 +304,7 @@ export default async function HomePage() {
         .code-dots span:nth-child(1) { background: #ff5f57; }
         .code-dots span:nth-child(2) { background: #febc2e; }
         .code-dots span:nth-child(3) { background: #28c840; }
-        .code-lines { padding: 20px; display: flex; flex-direction: column; gap: 10; font-family: monospace; font-size: 13px; }
+        .code-lines { padding: 20px; display: flex; flex-direction: column; gap: 10px; font-family: monospace; font-size: 13px; }
         .code-line { line-height: 1.5; }
         .c-kw { color: #a78bfa; }
         .c-str { color: #4ade80; }
@@ -319,7 +325,7 @@ export default async function HomePage() {
         }
         .section-sub { font-size: 14px; color: rgba(255,255,255,0.4); }
         .controller-grid {
-          display: grid; grid-template-columns: repeat(3,1fr); gap: 12;
+          display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
           margin-bottom: 16px;
         }
         .controller-card {
@@ -336,19 +342,33 @@ export default async function HomePage() {
         .ctrl-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px; }
         .ctrl-hint { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
         .controller-tip {
-          display: flex; align-items: center; gap: 8;
+          display: flex; align-items: center; gap: 8px;
           padding: 10px 16px; border-radius: 10px;
           background: rgba(74,222,128,0.06);
           border: 1px solid rgba(74,222,128,0.15);
           font-size: 12px; color: rgba(255,255,255,0.4);
         }
 
+        .mobile-fab {
+          display: none;
+        }
         @media (max-width: 768px) {
           .build-cta-inner { grid-template-columns: 1fr; padding: 28px 20px; gap: 24px; }
           .build-cta-visual { display: none; }
           .controller-grid { grid-template-columns: 1fr; }
-          .stats-row { gap: 8; }
+          .stats-row { gap: 8px; }
           .stat-chip { min-width: calc(50% - 4px); }
+          .mobile-fab {
+            display: flex; align-items: center; gap: 10;
+            position: fixed; bottom: 20px; right: 20px; z-index: 100;
+            padding: 14px 22px; border-radius: 50px;
+            background: linear-gradient(135deg,#7c3aed,#ec4899);
+            color: #fff; font-weight: 900; font-size: 15px;
+            text-decoration: none;
+            box-shadow: 0 4px 24px rgba(124,58,237,0.55), 0 0 0 1px rgba(255,255,255,0.1);
+            animation: fab-bounce 3s ease-in-out infinite;
+          }
+          @keyframes fab-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
         }
       `}</style>
     </>
