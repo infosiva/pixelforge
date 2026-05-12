@@ -3,11 +3,17 @@
  * otherwise falls back to in-memory (games lost on redeploy, OK for MVP).
  */
 import type { Game } from './types'
+import { CURATED_GAMES } from './curatedGames'
 
 const hasBlob = !!process.env.BLOB_READ_WRITE_TOKEN
 
 // In-memory fallback (single serverless instance; good enough for demos)
 const memStore = new Map<string, Game>()
+
+// Seed curated games so getGame() can find them for play-count increments
+for (const g of CURATED_GAMES) {
+  if (!memStore.has(g.id)) memStore.set(g.id, { ...g })
+}
 
 // ── Blob helpers (lazy import so build doesn't fail without token) ─────────────
 async function blobPut(key: string, body: string, contentType: string): Promise<string | null> {
@@ -70,16 +76,22 @@ export async function listGames(limit = 50): Promise<Game[]> {
 }
 
 export async function getGame(id: string): Promise<Game | null> {
-  if (memStore.has(id)) return memStore.get(id)!
-  if (!hasBlob) return null
-  try {
-    const urls = await blobList(`pixelforge/games/${id}/meta.json`)
-    if (!urls.length) return null
-    const text = await blobGet(urls[0])
-    return text ? JSON.parse(text) : null
-  } catch {
-    return null
+  // For Blob-backed deployments, prefer persisted data (has up-to-date play counts)
+  if (hasBlob) {
+    try {
+      const urls = await blobList(`pixelforge/games/${id}/meta.json`)
+      if (urls.length) {
+        const text = await blobGet(urls[0])
+        if (text) {
+          const game = JSON.parse(text) as Game
+          memStore.set(id, game) // warm cache
+          return game
+        }
+      }
+    } catch { /* fall through to memStore */ }
   }
+  if (memStore.has(id)) return memStore.get(id)!
+  return null
 }
 
 export async function storeGameHtml(gameId: string, html: string): Promise<string> {
