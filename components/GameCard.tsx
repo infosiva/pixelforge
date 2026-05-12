@@ -60,6 +60,8 @@ export default function GameCard({ game, featured }: { game: Game; featured?: bo
   const cardRef = useRef<HTMLDivElement>(null)
 
   function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    // Skip 3D tilt on touch devices — hover events don't apply and can cause stuck states
+    if (window.matchMedia('(hover: none)').matches) return
     const card = cardRef.current
     if (!card) return
     const rect = card.getBoundingClientRect()
@@ -146,7 +148,7 @@ export default function GameCard({ game, featured }: { game: Game; featured?: bo
       </div>
 
       <style>{`
-        .gc-link { text-decoration: none; display: block; }
+        .gc-link { text-decoration: none; display: block; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .gc {
           background: #0e0e1a;
           border: 1px solid rgba(255,255,255,0.07);

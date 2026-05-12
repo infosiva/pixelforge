@@ -166,7 +166,7 @@ export default function CreatePage() {
         {/* Genre grid */}
         <div style={{ marginBottom: 24 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Genre</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,minmax(0,1fr))', gap: 8 }} className="genre-grid">
             {GENRES.map(g => (
               <button key={g.id} onClick={() => setGenre(g.id)}
                 style={{
@@ -212,10 +212,11 @@ export default function CreatePage() {
           <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Describe your game</p>
           <textarea
             value={prompt}
-            onChange={e => { setPrompt(e.target.value); setError('') }}
+            onChange={e => { if (e.target.value.length <= 200) { setPrompt(e.target.value); setError('') } }}
             onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleBuild() }}
             placeholder={`e.g. ${PROMPTS[0].text}…`}
             rows={3}
+            maxLength={200}
             style={{
               width: '100%', padding: '14px 16px', borderRadius: 10, resize: 'none',
               background: '#14141f', color: '#fff', fontSize: 14, lineHeight: 1.6,
@@ -227,7 +228,12 @@ export default function CreatePage() {
             onBlur={e => { e.currentTarget.style.borderColor = error ? '#ef4444' : 'rgba(255,255,255,0.15)' }}
           />
           {error && <p style={{ fontSize: 12, color: '#f87171', marginTop: 6 }}>⚠ {error}</p>}
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textAlign: 'right', marginTop: 4 }}>⌘+Enter to build</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>⌘+Enter to build</span>
+            <span style={{ fontSize: 11, color: prompt.length > 180 ? '#f87171' : 'rgba(255,255,255,0.2)' }}>
+              {prompt.length}/200
+            </span>
+          </div>
         </div>
 
         {/* Inspiration chips */}
@@ -267,6 +273,54 @@ export default function CreatePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 14, fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>
           <Zap size={12} /> ~15 seconds · Published to arcade · Free forever
         </div>
+
+        {/* ── Unlock showcase ── */}
+        <div style={{ marginTop: 48, borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(124,58,237,0.25)', background: 'linear-gradient(135deg,rgba(124,58,237,0.08) 0%,rgba(236,72,153,0.04) 100%)' }}>
+          <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <p style={{ fontSize: 10, fontWeight: 900, color: '#a78bfa', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>Register Free — Unlock Everything</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: 0 }}>See the difference one account makes</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }} className="unlock-grid">
+            {[
+              { tier: 'Guest', icon: '👤', color: '#6b7280', games: '1 build', features: ['Basic AI model','Simple game logic','No saves','No remix'] },
+              { tier: 'Free Account', icon: '⭐', color: '#a78bfa', games: 'Unlimited builds', features: ['Faster AI model','Multi-level games','Save & share','Remix others'] },
+              { tier: 'Arcade Pro', icon: '👑', color: '#fbbf24', games: 'Priority queue', features: ['Top-tier AI model','Bosses & power-ups','Custom thumbnail','Leaderboards'] },
+            ].map((t, i) => (
+              <div key={t.tier} style={{
+                padding: '20px 18px',
+                borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                background: i === 1 ? 'rgba(124,58,237,0.1)' : 'transparent',
+                position: 'relative',
+              }}>
+                {i === 1 && (
+                  <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(90deg,#7c3aed,#ec4899)', borderRadius: '0 0 8px 8px', padding: '2px 12px', fontSize: 9, fontWeight: 900, color: '#fff', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>MOST POPULAR</div>
+                )}
+                <div style={{ fontSize: 26, marginBottom: 8 }}>{t.icon}</div>
+                <p style={{ fontSize: 13, fontWeight: 900, color: t.color, marginBottom: 3 }}>{t.tier}</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 12 }}>{t.games}</p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {t.features.map(f => (
+                    <li key={f} style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ color: t.color, fontSize: 9 }}>●</span> {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '14px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>No credit card · Takes 10 seconds · Magic link login</span>
+          </div>
+        </div>
+
+        <style>{`
+          @media (max-width: 640px) {
+            .genre-grid { grid-template-columns: repeat(3,1fr) !important; }
+            .unlock-grid { grid-template-columns: 1fr !important; }
+            .unlock-grid > div { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .unlock-grid > div:last-child { border-bottom: none; }
+          }
+        `}</style>
 
       </div>
 

@@ -182,6 +182,8 @@ export default function HeroSection({ featuredGames }: { featuredGames: Game[] }
           text-decoration: none; cursor: pointer;
           box-shadow: 0 0 32px rgba(124,58,237,0.45);
           transition: all 0.2s; border: none;
+          touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+          min-height: 48px;
         }
         .hero-btn-primary:hover {
           transform: translateY(-2px);
@@ -195,6 +197,8 @@ export default function HeroSection({ featuredGames }: { featuredGames: Game[] }
           border: 1px solid rgba(255,255,255,0.12);
           color: rgba(255,255,255,0.7); font-weight: 700; font-size: 15px;
           text-decoration: none; transition: all 0.2s;
+          touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+          min-height: 48px;
         }
         .hero-btn-secondary:hover {
           background: rgba(255,255,255,0.09);
