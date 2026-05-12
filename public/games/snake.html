@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><style>*{margin:0;padding:0}body{background:#0a0a1a;overflow:hidden}</style></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><style>*{margin:0;padding:0}body{background:#0a0a1a;overflow:hidden}canvas{display:block;max-width:100%}</style></head>
 <body>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script>
@@ -16,6 +16,7 @@ const W=800,H=500,SZ=20,COLS=Math.floor(W/SZ),ROWS=Math.floor(H/SZ);
 let snake,dir,nextDir,food,bonus,score,lives,sc,lv,alive,speed,particles;
 
 const config={type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#0a0a1a',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},
   scene:{preload,create,update}};
 const game=new Phaser.Game(config);
 

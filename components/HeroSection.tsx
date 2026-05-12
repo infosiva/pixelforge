@@ -109,7 +109,7 @@ export default function HeroSection({ featuredGames }: { featuredGames: Game[] }
               <FloatingCard
                 key={game.id}
                 game={game}
-                style={{ position: 'absolute', width: pos.width, transform: `rotate(${pos.rotate})`, ...pos }}
+                style={{ position: 'absolute', transform: `rotate(${pos.rotate})`, ...pos }}
                 delay={i * 0.4}
               />
             )

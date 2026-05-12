@@ -333,7 +333,7 @@ export async function aiChat(
   maxTokens = 700,
   quality: Quality = 'balanced',
 ): Promise<string> {
-  const system = systemPrompt ?? (config as any).aiSystemPrompt ?? _aiSystemPrompt
+  const system = systemPrompt ?? _aiSystemPrompt
   const { text } = await callAI(system, messages, maxTokens, quality)
   return text
 }
