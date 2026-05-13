@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useIsMobile } from '@/lib/useIsMobile'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Heart, Share2, RotateCcw, Wand2, Maximize2, Play, Trophy, Sparkles, Check, Gamepad2, ChevronRight, Info } from 'lucide-react'
@@ -99,15 +100,8 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
   const [score, setScore]             = useState<number | null>(null)
   const [gamepadConnected, setGamepadConnected] = useState(false)
   const [showControls, setShowControls] = useState(false)
-  const [isMobile, setIsMobile] = useState(true)
+  const isMobile = useIsMobile()
   const startTime = useRef(Date.now())
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
 
   useEffect(() => {
     if (demoMode) { setHtmlContent(DEMO_GAME_HTML); setLoading(false); return }
