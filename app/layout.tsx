@@ -3,6 +3,8 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import ChatBot from '@/components/ChatBot'
 import { PIXELFORGE_CHAT_CONFIG } from '@/lib/chatbot-configs'
+import CookieConsent from "../components/CookieConsent";
+import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
   title: { default: 'PixelForge AI — Build & Play AI Games', template: '%s | PixelForge AI' },
@@ -26,10 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>
-        <footer className="py-6 text-center text-xs text-white/20 border-t border-white/5">
-          PixelForge AI — Build &amp; play browser games with AI. No downloads. No code.
-        </footer>
+        <Footer siteName="PixelForge AI" tagline="Build & play browser games with AI. No downloads. No code." />
         <ChatBot config={PIXELFORGE_CHAT_CONFIG} />
+      <CookieConsent />
       </body>
     </html>
   )
