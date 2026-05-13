@@ -99,7 +99,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
   const [score, setScore]             = useState<number | null>(null)
   const [gamepadConnected, setGamepadConnected] = useState(false)
   const [showControls, setShowControls] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(true)
   const startTime = useRef(Date.now())
 
   useEffect(() => {
@@ -184,7 +184,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
 
   const iframeAttrs = {
     ref: iframeRef,
-    sandbox: 'allow-scripts allow-same-origin' as const,
+    sandbox: 'allow-scripts allow-same-origin allow-pointer-lock' as const,
     title: game.title,
     style: { border: 'none', position: 'absolute' as const, inset: 0, width: '100%', height: '100%', display: 'block' } as React.CSSProperties,
   }
