@@ -448,3 +448,23 @@ export async function getProviderStatus(): Promise<Record<string, { hasKey: bool
   }
   return status
 }
+
+// ── PixelForge game generation shims ─────────────────────────────────────────
+export async function generateGameCode(prompt: string, genre: string, ageRating: string): Promise<string> {
+  return callAI(
+    `You are an expert Phaser 3 game developer. Generate a complete, self-contained HTML5 game using Phaser 3 CDN. The game must be playable immediately. Output ONLY the complete HTML file, no explanation.`,
+    [{ role: 'user', content: `Create a ${genre} game (age rating: ${ageRating}): ${prompt}` }],
+    4000,
+    'best'
+  ).then(r => r.text)
+}
+
+export async function generateGameMeta(prompt: string, genre: string, _ageRating: string): Promise<{ title: string; description: string; tags: string[] }> {
+  const raw = await callAI(
+    'Generate game metadata as JSON only: { "title": "...", "description": "...", "tags": ["...", "..."] }. No markdown.',
+    [{ role: 'user', content: `Game: ${prompt} (genre: ${genre})` }],
+    200,
+    'fast'
+  ).then(r => r.text)
+  try { return JSON.parse(raw.replace(/```json?|```/g, '').trim()) } catch { return { title: prompt.slice(0, 40), description: prompt, tags: [genre] } }
+}
