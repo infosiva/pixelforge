@@ -24,6 +24,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --arcade-primary: #a855f7;
+            --arcade-neon: #22d3ee;
+            --arcade-yellow: #fbbf24;
+            --bg: #050208;
+          }
+          html, body { background: #050208 !important; }
+          h1, h2, .arcade-title { font-family: 'Press Start 2P', monospace !important; letter-spacing: 0.02em; }
+          .game-title, nav .logo { font-family: 'Rajdhani', sans-serif !important; font-weight: 700; }
+          /* Neon scan-line texture */
+          body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 9999;
+          }
+        `}} />
       </head>
       <body className="min-h-screen flex flex-col">
         <Navbar />
