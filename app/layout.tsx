@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <CookieConsent />
         {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
         <script src="http://31.97.56.148:3098/t.js" data-site="arcadeforge.app" defer></script>
+            <Script async src="http://31.97.56.148:3100/script.js" data-website-id="6ab47163-0d4c-402d-a308-5e7049226c60" strategy="afterInteractive" />
       </body>
     </html>
   )
