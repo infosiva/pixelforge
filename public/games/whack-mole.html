@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><style>*{margin:0;padding:0}body{background:#2d5016;overflow:hidden}canvas{display:block;max-width:100%}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+const W=800,H=520,HOLES=9;
+let score,lives,timeLeft,moles,timer,gameActive,scoreTxt,livesTxt,timeTxt;
+
+const cfg={type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#2d5016',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},
+  scene:{preload,create,update}};
+new Phaser.Game(cfg);
+
+function preload(){}
+function create(){
+  score=0;lives=3;timeLeft=45;gameActive=true;moles=[];
+  // grass bg
+  const g=this.add.graphics();
+  g.fillStyle(0x2d5016);g.fillRect(0,0,W,H);
+  for(let i=0;i<40;i++){g.fillStyle(0x3a6b1e,0.5);g.fillRect(Math.random()*W,Math.random()*H,3,12);}
+
+  scoreTxt=this.add.text(40,20,'Score: 0',{fontSize:'24px',color:'#fff',fontStyle:'bold',stroke:'#000',strokeThickness:3});
+  livesTxt=this.add.text(W/2,20,'❤️❤️❤️',{fontSize:'24px',color:'#f44'}).setOrigin(0.5);
+  timeTxt=this.add.text(W-40,20,'45s',{fontSize:'24px',color:'#ffdd44',fontStyle:'bold',stroke:'#000',strokeThickness:3}).setOrigin(1,0);
+
+  // 3x3 grid of holes
+  const COLS=3,OX=130,OY=110,GX=260,GY=130;
+  const sc=this;
+  for(let i=0;i<HOLES;i++){
+    const col=i%COLS,row=Math.floor(i/COLS);
+    const x=OX+col*GX,y=OY+row*GY;
+    // hole
+    const hole=sc.add.ellipse(x,y,120,40,0x1a0a00);
+    const moleG=sc.add.graphics();
+    // mole body
+    moleG.fillStyle(0x8B5E3C);moleG.fillEllipse(0,-10,72,70);
+    moleG.fillStyle(0xc9956c);moleG.fillEllipse(0,-2,40,36);
+    moleG.fillStyle(0x1a0a00);moleG.fillEllipse(-10,-20,14,14);moleG.fillEllipse(10,-20,14,14);
+    moleG.fillStyle(0xff9eb5);moleG.fillEllipse(0,-8,18,12);
+    moleG.generateTexture('mole',80,80);moleG.destroy();
+    const mole=sc.add.image(x,y+20,'mole').setAlpha(0).setDepth(1).setInteractive();
+    mole.holeY=y;mole.up=false;
+    mole.on('pointerdown',()=>{
+      if(!mole.up||!gameActive)return;
+      score+=10;scoreTxt.setText('Score: '+score);
+      sc.tweens.killTweensOf(mole);
+      sc.tweens.add({targets:mole,y:mole.holeY+20,alpha:0,duration:120,onComplete:()=>{mole.up=false;}});
+      // whack effect
+      const pop=sc.add.text(mole.x,mole.y-30,'WHACK! +10',{fontSize:'18px',color:'#ffdd44',fontStyle:'bold',stroke:'#000',strokeThickness:3}).setDepth(5);
+      sc.tweens.add({targets:pop,y:pop.y-40,alpha:0,duration:600,onComplete:()=>pop.destroy()});
+    });
+    moles.push(mole);
+  }
+
+  // spawn moles periodically
+  this.moleTimer=this.time.addEvent({delay:900,callback:()=>{if(!gameActive)return;spawnMole(this);},loop:true});
+  this.time.addEvent({delay:1000,callback:()=>{timeLeft--;timeTxt.setText(timeLeft+'s');if(timeLeft<=0)endGame(this);},repeat:44});
+
+  // miss click on ground
+  this.input.on('pointerdown',()=>{
+    if(!gameActive)return;
+    lives--;livesTxt.setText('❤️'.repeat(Math.max(0,lives)));
+    if(lives<=0)endGame(this);
+  });
+}
+
+function spawnMole(sc){
+  const avail=moles.filter(m=>!m.up);
+  if(!avail.length)return;
+  const mole=Phaser.Utils.Array.GetRandom(avail);
+  mole.up=true;mole.y=mole.holeY+20;
+  sc.tweens.add({targets:mole,y:mole.holeY-28,alpha:1,duration:180,onComplete:()=>{
+    sc.time.delayedCall(Phaser.Math.Between(700,1800),()=>{
+      if(!mole.up)return;
+      sc.tweens.add({targets:mole,y:mole.holeY+20,alpha:0,duration:200,onComplete:()=>{mole.up=false;}});
+    });
+  }});
+}
+
+function endGame(sc){
+  gameActive=false;if(sc.moleTimer)sc.moleTimer.remove();
+  sc.add.rectangle(W/2,H/2,460,210,0x000,0.85).setOrigin(0.5).setDepth(6);
+  sc.add.text(W/2,H/2-70,'🏆 Game Over!',{fontSize:'40px',color:'#ffdd44',fontStyle:'bold'}).setOrigin(0.5).setDepth(7);
+  sc.add.text(W/2,H/2+0,'Score: '+score,{fontSize:'32px',color:'#fff',fontStyle:'bold'}).setOrigin(0.5).setDepth(7);
+  sc.add.text(W/2,H/2+60,'Click to play again',{fontSize:'20px',color:'#aaa'}).setOrigin(0.5).setDepth(7);
+  sc.input.once('pointerdown',()=>sc.scene.restart());
+}
+function update(){}
+</script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Rush</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #0d0d0d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+    overflow: hidden;
+  }
+  #hud {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #aaa;
+    letter-spacing: 1px;
+  }
+  #hud span { font-size: 24px; color: #fff; font-weight: 900; display: block; }
+  #arena {
+    position: relative;
+    width: 360px;
+    height: 480px;
+    background: #111;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #222;
+    box-shadow: 0 0 40px #00000088;
+  }
+  #player {
+    position: absolute;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    bottom: 40px;
+    left: 160px;
+    transition: left 0.08s;
+    box-shadow: 0 0 20px currentColor;
+  }
+  .obstacle {
+    position: absolute;
+    border-radius: 8px;
+    width: 80px;
+    height: 24px;
+    top: -30px;
+  }
+  #color-indicator {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 1px;
+  }
+  #overlay {
+    position: fixed; inset: 0;
+    background: #000c;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px;
+  }
+  #overlay h1 { font-size: 36px; font-weight: 900; letter-spacing: 4px; }
+  #overlay .sub { color: #888; font-size: 13px; text-align: center; max-width: 280px; line-height: 1.6; }
+  #overlay button {
+    background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff);
+    color: #000;
+    border: none;
+    padding: 14px 40px;
+    font-size: 15px;
+    font-weight: 900;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #color-prompt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 48px;
+    font-weight: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  #combo-display {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 12px;
+    color: #ffd93d;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  .mobile-btns {
+    display: none;
+    gap: 20px;
+    margin-top: 16px;
+  }
+  @media (max-width: 480px) {
+    .mobile-btns { display: flex; }
+    #arena { width: 320px; }
+  }
+  .m-btn {
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  .m-btn:active { background: #333; }
+</style>
+</head>
+<body>
+<div id="overlay">
+  <h1 id="overlay-title" style="background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">COLOR RUSH</h1>
+  <p class="sub">Match your color to the falling blocks.<br>Dodge the wrong colors. Survive!</p>
+  <button onclick="startGame()">PLAY</button>
+</div>
+
+<div id="hud">
+  <div>SCORE<span id="score">0</span></div>
+  <div>BEST<span id="best">0</span></div>
+  <div>LEVEL<span id="level-num">1</span></div>
+</div>
+
+<div id="arena">
+  <div id="player"></div>
+  <div id="color-prompt"></div>
+  <div id="combo-display"></div>
+  <div id="color-indicator">YOUR COLOR ↓</div>
+</div>
+
+<div class="mobile-btns">
+  <button class="m-btn" id="left-btn">◀</button>
+  <button class="m-btn" id="right-btn">▶</button>
+</div>
+
+<script>
+const PALETTE = [
+  {name:'RED',   color:'#ff6b6b'},
+  {name:'BLUE',  color:'#4d96ff'},
+  {name:'GREEN', color:'#6bcb77'},
+  {name:'GOLD',  color:'#ffd93d'},
+  {name:'PURPLE',color:'#c77dff'},
+  {name:'CYAN',  color:'#00f5ff'},
+];
+
+let playerColor, score, best=0, combo, level, speed, spawnRate;
+let playerX, moving, obstacles=[], animId, running=false, paused=false;
+let lastSpawn=0, lastColor=0;
+const ARENA_W=360, ARENA_H=480, PLAYER_W=40;
+
+const arena = document.getElementById('arena');
+const playerEl = document.getElementById('player');
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const levelEl = document.getElementById('level-num');
+const comboEl = document.getElementById('combo-display');
+const promptEl = document.getElementById('color-prompt');
+
+function randomColor(exclude) {
+  const pool = PALETTE.filter(c=>c.color!==exclude?.color);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function setPlayerColor(c) {
+  playerColor = c;
+  playerEl.style.background = c.color;
+  playerEl.style.color = c.color;
+  playerEl.style.boxShadow = `0 0 20px ${c.color}88`;
+  document.getElementById('color-indicator').textContent = c.name + ' ↓';
+}
+
+function flashPrompt(text, color) {
+  promptEl.textContent = text;
+  promptEl.style.color = color;
+  promptEl.style.opacity = '1';
+  setTimeout(()=>promptEl.style.opacity='0',400);
+}
+
+function spawnObstacle() {
+  const isMatch = Math.random() < 0.4 + level*0.03;
+  const color = isMatch ? playerColor : randomColor(playerColor);
+  const lanes = [20,80,140,200,260,300];
+  const x = lanes[Math.floor(Math.random()*lanes.length)];
+  const el = document.createElement('div');
+  el.className = 'obstacle';
+  el.style.left = x+'px';
+  el.style.background = color.color;
+  el.style.boxShadow = `0 0 12px ${color.color}66`;
+  el.dataset.match = isMatch ? '1' : '0';
+  el.dataset.color = color.color;
+  arena.appendChild(el);
+  obstacles.push({el, x, y:-30, match:isMatch});
+}
+
+function checkCollision(obs) {
+  const px = playerX, py = ARENA_H - 80;
+  const ox = obs.x, oy = obs.y;
+  return ox < px+PLAYER_W-4 && ox+80 > px+4 && oy < py+PLAYER_W-4 && oy+24 > py+4;
+}
+
+function changeColor() {
+  setPlayerColor(randomColor(playerColor));
+  flashPrompt('COLOR CHANGE!', '#fff');
+}
+
+let leftHeld=false, rightHeld=false;
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){leftHeld=true;}
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){rightHeld=true;}
+  if(e.key===' '){e.preventDefault();changeColor();}
+  if(e.key==='r'||e.key==='R') startGame();
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') leftHeld=false;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') rightHeld=false;
+});
+
+document.getElementById('left-btn').addEventListener('touchstart',()=>leftHeld=true,{passive:true});
+document.getElementById('left-btn').addEventListener('touchend',()=>leftHeld=false);
+document.getElementById('right-btn').addEventListener('touchstart',()=>rightHeld=true,{passive:true});
+document.getElementById('right-btn').addEventListener('touchend',()=>rightHeld=false);
+
+// tap arena to change color on mobile
+arena.addEventListener('touchstart',e=>{
+  if(!running)return;
+  const touch=e.touches[0];
+  const rect=arena.getBoundingClientRect();
+  const rx=touch.clientX-rect.left;
+  if(rx<ARENA_W*0.3) leftHeld=true;
+  else if(rx>ARENA_W*0.7) rightHeld=true;
+  else changeColor();
+},{passive:true});
+arena.addEventListener('touchend',()=>{leftHeld=false;rightHeld=false;});
+
+function gameLoop(ts) {
+  if (!running) return;
+  // move player
+  if (leftHeld && playerX > 0) playerX = Math.max(0, playerX-4);
+  if (rightHeld && playerX < ARENA_W-PLAYER_W) playerX = Math.min(ARENA_W-PLAYER_W, playerX+4);
+  playerEl.style.left = playerX+'px';
+
+  // spawn
+  if (ts - lastSpawn > spawnRate) {
+    spawnObstacle();
+    lastSpawn = ts;
+    spawnRate = Math.max(400, 1200 - level*60);
+  }
+  // color change timer
+  if (ts - lastColor > 4000 - level*100) {
+    changeColor();
+    lastColor = ts;
+  }
+
+  // move obstacles
+  for (let i=obstacles.length-1; i>=0; i--) {
+    const obs = obstacles[i];
+    obs.y += speed;
+    obs.el.style.top = obs.y+'px';
+
+    if (checkCollision(obs)) {
+      if (obs.match) {
+        // correct — collect
+        score += 10 * (combo+1);
+        combo++;
+        comboEl.textContent = combo>1?`×${combo} COMBO!`:'';
+        flashPrompt(`+${10*(combo)}`, '#6bcb77');
+        obs.el.remove();
+        obstacles.splice(i,1);
+        // level up
+        level = Math.floor(score/200)+1;
+        levelEl.textContent = level;
+        speed = 2 + level*0.3;
+        scoreEl.textContent = score;
+      } else {
+        // wrong — game over
+        gameOver();
+        return;
+      }
+    } else if (obs.y > ARENA_H) {
+      if (obs.match) { combo=0; comboEl.textContent=''; }
+      obs.el.remove();
+      obstacles.splice(i,1);
+    }
+  }
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function gameOver() {
+  running = false;
+  cancelAnimationFrame(animId);
+  if (score>best){ best=score; bestEl.textContent=best; }
+  obstacles.forEach(o=>o.el.remove());
+  obstacles=[];
+  const ov = document.getElementById('overlay');
+  ov.querySelector('h1').textContent = '💥 CRASH!';
+  ov.querySelector('h1').style.cssText = 'font-size:36px;color:#ff6b6b;background:none;-webkit-text-fill-color:#ff6b6b';
+  ov.querySelector('.sub').textContent = `Score: ${score} | Level: ${level} | Best: ${best}`;
+  ov.querySelector('button').textContent = 'TRY AGAIN';
+  ov.style.display='flex';
+}
+
+function startGame() {
+  running=false;
+  cancelAnimationFrame(animId);
+  obstacles.forEach(o=>o.el.remove());
+  obstacles=[];
+  score=0; combo=0; level=1; speed=2; spawnRate=1200;
+  playerX = ARENA_W/2 - PLAYER_W/2;
+  leftHeld=false; rightHeld=false;
+  setPlayerColor(PALETTE[Math.floor(Math.random()*PALETTE.length)]);
+  scoreEl.textContent='0';
+  levelEl.textContent='1';
+  comboEl.textContent='';
+  document.getElementById('overlay').style.display='none';
+  running=true;
+  lastSpawn=0; lastColor=0;
+  requestAnimationFrame(ts=>{lastSpawn=ts;lastColor=ts;gameLoop(ts);});
+}
+</script>
+</body>
+</html>

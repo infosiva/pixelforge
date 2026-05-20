@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction Time</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d1a; font-family: system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; color: #fff;
+  }
+  #app {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 24px; padding: 20px; width: 100%; max-width: 480px; text-align: center;
+  }
+  h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; }
+  #zone {
+    width: 100%; aspect-ratio: 4/3; border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; cursor: pointer; transition: background 0.1s;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+    border: 2px solid rgba(255,255,255,0.08);
+    font-size: 18px; font-weight: 700;
+  }
+  #zone.wait  { background: linear-gradient(135deg, #1a0a0a, #2d0505); border-color: rgba(239,68,68,0.3); }
+  #zone.ready { background: linear-gradient(135deg, #0a1a0a, #052d05); border-color: rgba(74,222,128,0.5);
+    box-shadow: 0 0 60px rgba(74,222,128,0.25); }
+  #zone.early { background: linear-gradient(135deg, #1a0a00, #2d1500); border-color: rgba(251,191,36,0.4); }
+  #zone.idle  { background: linear-gradient(135deg, #0e0e1e, #1a1a2e); border-color: rgba(167,139,250,0.2); }
+  #zone-icon { font-size: 64px; }
+  #zone-msg  { font-size: 22px; font-weight: 800; }
+  #zone-sub  { font-size: 14px; opacity: 0.6; }
+  #result { font-size: 52px; font-weight: 900; letter-spacing: -0.03em; }
+  #avg    { font-size: 14px; color: rgba(255,255,255,0.4); }
+  #scores {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%;
+  }
+  .score-chip {
+    padding: 8px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    font-size: 13px; font-weight: 700;
+  }
+  .score-chip.best { border-color: rgba(74,222,128,0.5); color: #4ade80; }
+  #rating {
+    font-size: 18px; font-weight: 800; padding: 10px 24px; border-radius: 12px;
+    background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3);
+    color: #c4b5fd;
+  }
+  #tries { font-size: 13px; color: rgba(255,255,255,0.35); }
+  button.btn {
+    padding: 10px 28px; border-radius: 12px;
+    background: rgba(124,58,237,0.3); border: 1px solid rgba(167,139,250,0.4);
+    color: #c4b5fd; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  button.btn:hover { background: rgba(124,58,237,0.5); }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>⚡ Reaction Time</h1>
+  <div id="zone" class="idle" onclick="handleClick()">
+    <div id="zone-icon">👆</div>
+    <div id="zone-msg">Tap to Start</div>
+    <div id="zone-sub">Test your reaction speed</div>
+  </div>
+  <div id="result" style="display:none"></div>
+  <div id="rating" style="display:none"></div>
+  <div id="avg" style="display:none"></div>
+  <div id="scores" style="display:none"></div>
+  <div id="tries"></div>
+  <button class="btn" id="reset-btn" onclick="resetGame()" style="display:none">↺ Try Again</button>
+</div>
+
+<script>
+let state = 'idle' // idle | countdown | wait | ready | early | done
+let startTime = 0
+let timeout = null
+let attempts = []
+const MAX = 5
+
+function getRating(ms) {
+  if (ms < 150) return { text: '🚀 Superhuman!', color: '#a78bfa' }
+  if (ms < 200) return { text: '⚡ Lightning!', color: '#fbbf24' }
+  if (ms < 250) return { text: '🏅 Excellent', color: '#4ade80' }
+  if (ms < 300) return { text: '👍 Good', color: '#60a5fa' }
+  if (ms < 400) return { text: '😊 Average', color: '#94a3b8' }
+  return { text: '🐢 Keep practising', color: '#f87171' }
+}
+
+function setZone(cls, icon, msg, sub) {
+  const z = document.getElementById('zone')
+  z.className = 'zone ' + cls
+  document.getElementById('zone-icon').textContent = icon
+  document.getElementById('zone-msg').textContent = msg
+  document.getElementById('zone-sub').textContent = sub
+}
+
+function handleClick() {
+  if (state === 'idle' || state === 'done') {
+    startRound()
+  } else if (state === 'wait') {
+    // Too early!
+    clearTimeout(timeout)
+    state = 'early'
+    document.getElementById('zone').className = 'early'
+    document.getElementById('zone-icon').textContent = '⚠️'
+    document.getElementById('zone-msg').textContent = 'Too early!'
+    document.getElementById('zone-sub').textContent = 'Wait for green — tap to retry'
+  } else if (state === 'ready') {
+    const rt = Date.now() - startTime
+    attempts.push(rt)
+    state = 'done'
+    showResult(rt)
+  } else if (state === 'early') {
+    startRound()
+  } else if (state === 'countdown') {
+    // ignore taps during countdown
+  }
+}
+
+function startRound() {
+  state = 'countdown'
+  document.getElementById('result').style.display = 'none'
+  document.getElementById('rating').style.display = 'none'
+  document.getElementById('avg').style.display = 'none'
+  document.getElementById('reset-btn').style.display = 'none'
+
+  document.getElementById('zone').className = 'wait'
+  document.getElementById('zone-icon').textContent = '🔴'
+  document.getElementById('zone-msg').textContent = 'Wait...'
+  document.getElementById('zone-sub').textContent = 'Tap when it turns green'
+  state = 'wait'
+
+  const delay = 1500 + Math.random() * 3000
+  timeout = setTimeout(() => {
+    if (state !== 'wait') return
+    state = 'ready'
+    startTime = Date.now()
+    document.getElementById('zone').className = 'ready'
+    document.getElementById('zone-icon').textContent = '🟢'
+    document.getElementById('zone-msg').textContent = 'TAP NOW!'
+    document.getElementById('zone-sub').textContent = ''
+  }, delay)
+}
+
+function showResult(rt) {
+  const r = document.getElementById('result')
+  r.textContent = `${rt} ms`
+  r.style.display = 'block'
+
+  const rating = getRating(rt)
+  const ratingEl = document.getElementById('rating')
+  ratingEl.textContent = rating.text
+  ratingEl.style.display = 'block'
+  ratingEl.style.color = rating.color
+  ratingEl.style.borderColor = rating.color + '40'
+  ratingEl.style.background = rating.color + '18'
+
+  document.getElementById('tries').textContent = `${attempts.length} / ${MAX} attempts`
+  updateScores()
+
+  if (attempts.length < MAX) {
+    document.getElementById('zone').className = 'idle'
+    document.getElementById('zone-icon').textContent = '👆'
+    document.getElementById('zone-msg').textContent = 'Tap to continue'
+    document.getElementById('zone-sub').textContent = `${MAX - attempts.length} attempts left`
+    state = 'idle'
+  } else {
+    const avg = Math.round(attempts.reduce((a,b) => a+b, 0) / attempts.length)
+    document.getElementById('avg').textContent = `Average: ${avg} ms`
+    document.getElementById('avg').style.display = 'block'
+    document.getElementById('zone').className = 'idle'
+    document.getElementById('zone-icon').textContent = '🏁'
+    document.getElementById('zone-msg').textContent = 'All done!'
+    document.getElementById('zone-sub').textContent = 'See your scores above'
+    document.getElementById('reset-btn').style.display = 'inline-block'
+    state = 'done'
+  }
+}
+
+function updateScores() {
+  const el = document.getElementById('scores')
+  if (attempts.length === 0) { el.style.display = 'none'; return }
+  el.style.display = 'grid'
+  const best = Math.min(...attempts)
+  el.innerHTML = attempts.map((a, i) =>
+    `<div class="score-chip ${a === best ? 'best' : ''}">#${i+1}<br>${a}ms</div>`
+  ).join('')
+}
+
+function resetGame() {
+  attempts = []
+  state = 'idle'
+  clearTimeout(timeout)
+  document.getElementById('result').style.display = 'none'
+  document.getElementById('rating').style.display = 'none'
+  document.getElementById('avg').style.display = 'none'
+  document.getElementById('scores').style.display = 'none'
+  document.getElementById('reset-btn').style.display = 'none'
+  document.getElementById('tries').textContent = ''
+  document.getElementById('zone').className = 'idle'
+  document.getElementById('zone-icon').textContent = '👆'
+  document.getElementById('zone-msg').textContent = 'Tap to Start'
+  document.getElementById('zone-sub').textContent = 'Test your reaction speed'
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160">
+  <rect width="200" height="160" fill="#0a1a0a"/>
+  <!-- grass -->
+  <rect x="0" y="110" width="200" height="50" fill="#15521a"/>
+  <rect x="0" y="108" width="200" height="8" fill="#1d6b22"/>
+  <!-- holes 3x2 -->
+  <ellipse cx="40" cy="115" rx="24" ry="10" fill="#0a0a05"/>
+  <ellipse cx="100" cy="115" rx="24" ry="10" fill="#0a0a05"/>
+  <ellipse cx="160" cy="115" rx="24" ry="10" fill="#0a0a05"/>
+  <ellipse cx="40" cy="148" rx="24" ry="10" fill="#0a0a05"/>
+  <ellipse cx="100" cy="148" rx="24" ry="10" fill="#0a0a05"/>
+  <ellipse cx="160" cy="148" rx="24" ry="10" fill="#0a0a05"/>
+  <!-- moles popping up -->
+  <!-- center mole active -->
+  <ellipse cx="100" cy="100" rx="18" ry="20" fill="#8b5e3c"/>
+  <ellipse cx="100" cy="94" rx="14" ry="12" fill="#c8956a"/>
+  <circle cx="95" cy="90" r="3" fill="#1a1a1a"/>
+  <circle cx="105" cy="90" r="3" fill="#1a1a1a"/>
+  <circle cx="96" cy="91" r="1" fill="#fff"/>
+  <circle cx="106" cy="91" r="1" fill="#fff"/>
+  <ellipse cx="100" cy="97" rx="5" ry="3" fill="#e8a090"/>
+  <!-- left mole partial -->
+  <ellipse cx="40" cy="108" rx="16" ry="14" fill="#8b5e3c"/>
+  <ellipse cx="40" cy="103" rx="12" ry="10" fill="#c8956a"/>
+  <circle cx="36" cy="100" r="2.5" fill="#1a1a1a"/>
+  <circle cx="44" cy="100" r="2.5" fill="#1a1a1a"/>
+  <!-- hammer -->
+  <line x1="145" y1="30" x2="108" y2="90" stroke="#8b4513" stroke-width="5" stroke-linecap="round"/>
+  <rect x="130" y="18" width="30" height="20" rx="4" fill="#6b3a2a" transform="rotate(-30 145 28)"/>
+  <!-- score -->
+  <text x="100" y="22" font-size="14" font-weight="900" text-anchor="middle" fill="#fbbf24" font-family="sans-serif">SCORE: 420</text>
+</svg>

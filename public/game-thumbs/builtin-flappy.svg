@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160">
+  <rect width="200" height="160" fill="#0a1628"/>
+  <!-- sky gradient -->
+  <rect width="200" height="160" fill="url(#sky)"/>
+  <!-- pipes -->
+  <rect x="130" y="0" width="28" height="55" rx="4" fill="#22c55e"/>
+  <rect x="128" y="48" width="32" height="10" rx="3" fill="#16a34a"/>
+  <rect x="130" y="100" width="28" height="60" rx="4" fill="#22c55e"/>
+  <rect x="128" y="100" width="32" height="10" rx="3" fill="#16a34a"/>
+  <rect x="40" y="0" width="28" height="40" rx="4" fill="#22c55e"/>
+  <rect x="38" y="33" width="32" height="10" rx="3" fill="#16a34a"/>
+  <rect x="40" y="90" width="28" height="70" rx="4" fill="#22c55e"/>
+  <rect x="38" y="90" width="32" height="10" rx="3" fill="#16a34a"/>
+  <!-- ground -->
+  <rect x="0" y="145" width="200" height="15" fill="#d4a855"/>
+  <rect x="0" y="145" width="200" height="5" fill="#b8941e"/>
+  <!-- bird -->
+  <circle cx="85" cy="75" r="12" fill="#fbbf24"/>
+  <circle cx="85" cy="75" r="12" fill="url(#brd)" opacity="0.5"/>
+  <circle cx="91" cy="70" r="4" fill="#fff"/>
+  <circle cx="93" cy="70" r="2" fill="#1a1a2e"/>
+  <path d="M75 73 Q70 77 75 80" stroke="#f97316" stroke-width="2" fill="none"/>
+  <path d="M80 65 Q90 55 95 63" fill="#fde68a"/>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0e3a6e"/><stop offset="100%" stop-color="#1e6eb5"/></linearGradient>
+    <radialGradient id="brd"><stop offset="0%" stop-color="#fff" stop-opacity="0.3"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+  </defs>
+</svg>

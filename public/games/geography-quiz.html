@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geography Quiz</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d1a; font-family: system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; color: #fff;
+  }
+  #app {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 20px; padding: 20px; width: 100%; max-width: 520px;
+  }
+  #header { display: flex; justify-content: space-between; width: 100%; align-items: center; }
+  h1 { font-size: 22px; font-weight: 900; }
+  #score-area { display: flex; gap: 12px; font-size: 13px; }
+  .badge { padding: 4px 12px; border-radius: 20px; font-weight: 700;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); }
+  #progress {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;
+  }
+  #progress-bar {
+    height: 100%; background: linear-gradient(90deg, #7c3aed, #ec4899);
+    border-radius: 3px; transition: width 0.4s ease;
+  }
+  #question-card {
+    width: 100%; padding: 28px 24px; border-radius: 20px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    text-align: center;
+  }
+  #q-category { font-size: 11px; font-weight: 900; color: #a78bfa; letter-spacing: 0.1em; margin-bottom: 12px; }
+  #q-flag { font-size: 72px; margin-bottom: 12px; line-height: 1; }
+  #q-text { font-size: 20px; font-weight: 800; line-height: 1.3; }
+  #q-hint { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 8px; }
+  #answers {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;
+  }
+  .ans-btn {
+    padding: 14px 12px; border-radius: 14px;
+    background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1);
+    color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+    text-align: center; line-height: 1.3;
+  }
+  .ans-btn:hover:not(:disabled) { background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.4); }
+  .ans-btn.correct { background: rgba(74,222,128,0.2) !important; border-color: #4ade80 !important; color: #4ade80 !important; }
+  .ans-btn.wrong   { background: rgba(248,113,113,0.15) !important; border-color: #f87171 !important; color: #f87171 !important; }
+  .ans-btn:disabled { cursor: default; }
+  #feedback {
+    font-size: 16px; font-weight: 700; padding: 12px 24px; border-radius: 12px;
+    text-align: center; width: 100%; display: none;
+  }
+  #next-btn {
+    padding: 12px 32px; border-radius: 12px;
+    background: rgba(124,58,237,0.3); border: 1px solid rgba(167,139,250,0.4);
+    color: #c4b5fd; font-size: 15px; font-weight: 800;
+    cursor: pointer; font-family: inherit; transition: all 0.15s; display: none;
+  }
+  #next-btn:hover { background: rgba(124,58,237,0.5); }
+  #end-card {
+    width: 100%; padding: 40px 24px; border-radius: 20px;
+    background: rgba(124,58,237,0.08); border: 1px solid rgba(167,139,250,0.25);
+    text-align: center; display: none; gap: 16px; flex-direction: column; align-items: center;
+  }
+  #end-card.show { display: flex; }
+  #end-icon { font-size: 56px; }
+  #end-title { font-size: 28px; font-weight: 900; }
+  #end-sub { font-size: 15px; color: rgba(255,255,255,0.5); }
+  #restart-btn {
+    padding: 12px 32px; border-radius: 12px;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    border: none; color: #fff; font-size: 15px; font-weight: 800;
+    cursor: pointer; font-family: inherit;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <h1>🌍 Geography Quiz</h1>
+    <div id="score-area">
+      <span class="badge" id="score-badge">0 pts</span>
+      <span class="badge" id="q-counter">1/10</span>
+    </div>
+  </div>
+  <div id="progress"><div id="progress-bar" style="width:10%"></div></div>
+
+  <div id="question-card">
+    <div id="q-category"></div>
+    <div id="q-flag"></div>
+    <div id="q-text"></div>
+    <div id="q-hint"></div>
+  </div>
+
+  <div id="answers"></div>
+  <div id="feedback"></div>
+  <button id="next-btn" onclick="nextQ()">Next →</button>
+
+  <div id="end-card">
+    <div id="end-icon">🏆</div>
+    <div id="end-title"></div>
+    <div id="end-sub"></div>
+    <button id="restart-btn" onclick="init()">Play Again</button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { type:'capital', q:'What is the capital of France?', answers:['Paris','Berlin','Rome','Madrid'], correct:0, flag:'🇫🇷', hint:'Western Europe' },
+  { type:'capital', q:'Capital of Japan?', answers:['Seoul','Beijing','Tokyo','Bangkok'], correct:2, flag:'🇯🇵', hint:'East Asia' },
+  { type:'capital', q:'Capital of Australia?', answers:['Sydney','Melbourne','Brisbane','Canberra'], correct:3, flag:'🇦🇺', hint:'Down under' },
+  { type:'capital', q:'Capital of Brazil?', answers:['Rio de Janeiro','São Paulo','Brasília','Salvador'], correct:2, flag:'🇧🇷', hint:'South America' },
+  { type:'capital', q:'Capital of Canada?', answers:['Toronto','Vancouver','Ottawa','Montreal'], correct:2, flag:'🇨🇦', hint:'North America' },
+  { type:'flag', q:'Which country does this flag belong to?', answers:['China','Japan','South Korea','Taiwan'], correct:1, flag:'🇯🇵', hint:'Rising sun' },
+  { type:'flag', q:'Which country has this flag?', answers:['Germany','France','Belgium','Netherlands'], correct:1, flag:'🇫🇷', hint:'Blue, white, red — vertical' },
+  { type:'fact', q:'Which is the largest country by area?', answers:['China','USA','Russia','Canada'], correct:2, flag:'🌐', hint:'It spans 11 time zones' },
+  { type:'fact', q:'Which ocean is the largest?', answers:['Atlantic','Arctic','Indian','Pacific'], correct:3, flag:'🌊', hint:'Over half of Earth\'s water' },
+  { type:'capital', q:'Capital of Egypt?', answers:['Cairo','Alexandria','Luxor','Giza'], correct:0, flag:'🇪🇬', hint:'Northeast Africa' },
+  { type:'capital', q:'Capital of India?', answers:['Mumbai','Kolkata','New Delhi','Chennai'], correct:2, flag:'🇮🇳', hint:'South Asia' },
+  { type:'fact', q:'Which is the longest river?', answers:['Amazon','Yangtze','Nile','Mississippi'], correct:2, flag:'🌍', hint:'Flows through Egypt' },
+  { type:'capital', q:'Capital of Germany?', answers:['Munich','Frankfurt','Hamburg','Berlin'], correct:3, flag:'🇩🇪', hint:'Central Europe' },
+  { type:'capital', q:'Capital of South Korea?', answers:['Busan','Seoul','Incheon','Daejeon'], correct:1, flag:'🇰🇷', hint:'East Asia' },
+  { type:'fact', q:'How many continents on Earth?', answers:['5','6','7','8'], correct:2, flag:'🌏', hint:'Africa, Americas, Asia, Europe, Oceania, Antarctica, …' },
+]
+
+let questions = [], idx = 0, score = 0, answered = false
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function init() {
+  questions = shuffle(QUESTIONS).slice(0, 10)
+  idx = 0; score = 0; answered = false
+  document.getElementById('end-card').classList.remove('show')
+  document.getElementById('question-card').style.display = 'block'
+  document.getElementById('answers').style.display = 'grid'
+  showQ()
+}
+
+function showQ() {
+  answered = false
+  const q = questions[idx]
+  document.getElementById('q-counter').textContent = `${idx+1}/10`
+  document.getElementById('progress-bar').style.width = `${((idx+1)/10)*100}%`
+  document.getElementById('score-badge').textContent = `${score} pts`
+  document.getElementById('q-category').textContent = q.type === 'capital' ? '🏛 CAPITAL CITY' : q.type === 'flag' ? '🚩 FLAG' : '📚 GEOGRAPHY FACT'
+  document.getElementById('q-flag').textContent = q.flag
+  document.getElementById('q-text').textContent = q.q
+  document.getElementById('q-hint').textContent = `Hint: ${q.hint}`
+  document.getElementById('feedback').style.display = 'none'
+  document.getElementById('next-btn').style.display = 'none'
+
+  const el = document.getElementById('answers')
+  el.innerHTML = q.answers.map((a, i) =>
+    `<button class="ans-btn" onclick="answer(${i})">${a}</button>`
+  ).join('')
+}
+
+function answer(i) {
+  if (answered) return
+  answered = true
+  const q = questions[idx]
+  const btns = document.querySelectorAll('.ans-btn')
+  btns.forEach(b => b.disabled = true)
+  btns[q.correct].classList.add('correct')
+
+  const fb = document.getElementById('feedback')
+  fb.style.display = 'block'
+
+  if (i === q.correct) {
+    score += 10
+    btns[i].classList.add('correct')
+    fb.textContent = '✅ Correct! +10 points'
+    fb.style.background = 'rgba(74,222,128,0.12)'
+    fb.style.color = '#4ade80'
+    fb.style.border = '1px solid rgba(74,222,128,0.3)'
+  } else {
+    btns[i].classList.add('wrong')
+    fb.textContent = `❌ Wrong — correct: ${q.answers[q.correct]}`
+    fb.style.background = 'rgba(248,113,113,0.1)'
+    fb.style.color = '#f87171'
+    fb.style.border = '1px solid rgba(248,113,113,0.25)'
+  }
+
+  document.getElementById('score-badge').textContent = `${score} pts`
+
+  const nextBtn = document.getElementById('next-btn')
+  nextBtn.style.display = 'inline-block'
+  nextBtn.textContent = idx < questions.length - 1 ? 'Next →' : 'See Results 🏆'
+}
+
+function nextQ() {
+  idx++
+  if (idx >= questions.length) {
+    showEnd()
+  } else {
+    showQ()
+  }
+}
+
+function showEnd() {
+  document.getElementById('question-card').style.display = 'none'
+  document.getElementById('answers').style.display = 'none'
+  document.getElementById('feedback').style.display = 'none'
+  document.getElementById('next-btn').style.display = 'none'
+  document.getElementById('progress-bar').style.width = '100%'
+  document.getElementById('score-badge').textContent = `${score} pts`
+
+  const pct = score / 100
+  const icon = pct >= 0.8 ? '🏆' : pct >= 0.6 ? '🌍' : '📚'
+  const title = pct >= 0.8 ? 'Geography Master!' : pct >= 0.6 ? 'Well Travelled!' : 'Keep Exploring!'
+  const sub = `You scored ${score} / 100 points`
+
+  document.getElementById('end-icon').textContent = icon
+  document.getElementById('end-title').textContent = title
+  document.getElementById('end-sub').textContent = sub
+  document.getElementById('end-card').classList.add('show')
+}
+
+init()
+</script>
+</body>
+</html>

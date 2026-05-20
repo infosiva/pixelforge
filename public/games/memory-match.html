@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><style>*{margin:0;padding:0}body{background:#0d1b2a;overflow:hidden}canvas{display:block;max-width:100%}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+const W=800,H=520;
+const EMOJIS=['🦊','🐶','🐱','🐸','🦋','🌸','⭐','🍕','🎸','🚀','🌈','💎','🎯','🏆','🍩','🎃'];
+let cards,flipped,matched,moves,timer,score,timeLeft,moveTxt,timeTxt,scoreTxt;
+
+const cfg={type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#0d1b2a',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},
+  scene:{preload,create,update}};
+new Phaser.Game(cfg);
+
+function preload(){}
+function create(){
+  const COLS=8,ROWS=2,CW=80,CH=90,MARGIN_X=80,MARGIN_Y=80;
+  flipped=[];matched=0;moves=0;timeLeft=60;
+  // header
+  moveTxt=this.add.text(40,20,'Moves: 0',{fontSize:'20px',color:'#aaa',fontStyle:'bold'});
+  timeTxt=this.add.text(W/2,20,'⏱ 60',{fontSize:'22px',color:'#4fc',fontStyle:'bold'}).setOrigin(0.5);
+  scoreTxt=this.add.text(W-40,20,'Pairs: 0/'+EMOJIS.length,{fontSize:'20px',color:'#aaa',fontStyle:'bold'}).setOrigin(1,0);
+
+  const pool=[...EMOJIS,...EMOJIS].sort(()=>Math.random()-0.5);
+  cards=[];
+  const sc=this;
+  for(let i=0;i<pool.length;i++){
+    const col=i%COLS,row=Math.floor(i/COLS);
+    const x=MARGIN_X+col*(CW+10),y=MARGIN_Y+row*(CH+14);
+    const card={emoji:pool[i],revealed:false,matched:false};
+    // back
+    const bg=sc.add.rectangle(x,y,CW-4,CH-4,0x1e3a5f).setInteractive().setOrigin(0,0);
+    bg.setStrokeStyle(2,0x4fc3f7);
+    const icon=sc.add.text(x+(CW-4)/2,y+(CH-4)/2,'❓',{fontSize:'32px'}).setOrigin(0.5).setAlpha(0.5);
+    const front=sc.add.text(x+(CW-4)/2,y+(CH-4)/2,pool[i],{fontSize:'36px'}).setOrigin(0.5).setVisible(false);
+    card.bg=bg;card.icon=icon;card.front=front;
+    bg.on('pointerdown',()=>flip(sc,card));
+    bg.on('pointerover',()=>{if(!card.revealed&&!card.matched)bg.setFillStyle(0x2a4a7f);});
+    bg.on('pointerout',()=>{if(!card.revealed&&!card.matched)bg.setFillStyle(0x1e3a5f);});
+    cards.push(card);
+  }
+  timer=sc.time.addEvent({delay:1000,callback:()=>{timeLeft--;timeTxt.setText('⏱ '+timeLeft);if(timeLeft<=0)endGame(sc,'timeout');},repeat:59});
+}
+
+function flip(sc,card){
+  if(card.revealed||card.matched||flipped.length>=2)return;
+  card.revealed=true;card.icon.setVisible(false);card.front.setVisible(true);card.bg.setFillStyle(0x2d5a9e);
+  flipped.push(card);
+  if(flipped.length===2){
+    moves++;moveTxt.setText('Moves: '+moves);
+    if(flipped[0].emoji===flipped[1].emoji){
+      flipped.forEach(c=>{c.matched=true;c.bg.setFillStyle(0x0a5c3a);c.bg.setStrokeStyle(2,0x00ff88);});
+      matched++;scoreTxt.setText('Pairs: '+matched+'/'+EMOJIS.length);
+      flipped=[];
+      if(matched===EMOJIS.length)sc.time.delayedCall(400,()=>endGame(sc,'win'));
+    } else {
+      sc.time.delayedCall(900,()=>{
+        flipped.forEach(c=>{c.revealed=false;c.icon.setVisible(true);c.front.setVisible(false);c.bg.setFillStyle(0x1e3a5f);});
+        flipped=[];
+      });
+    }
+  }
+}
+
+function endGame(sc,reason){
+  if(timer)timer.remove();
+  const bonus=reason==='win'?timeLeft*10:0;
+  const total=matched*100-moves*5+bonus;
+  const msg=reason==='win'?'🏆 You Win!':'⏰ Time\'s Up!';
+  sc.add.rectangle(W/2,H/2,500,220,0x000000,0.85).setOrigin(0.5);
+  sc.add.text(W/2,H/2-70,msg,{fontSize:'42px',color:'#4fc',fontStyle:'bold'}).setOrigin(0.5);
+  sc.add.text(W/2,H/2-10,'Pairs: '+matched+' | Moves: '+moves,{fontSize:'24px',color:'#fff'}).setOrigin(0.5);
+  sc.add.text(W/2,H/2+40,'Score: '+Math.max(0,total),{fontSize:'28px',color:'#ffd700',fontStyle:'bold'}).setOrigin(0.5);
+  sc.add.text(W/2,H/2+90,'Click to play again',{fontSize:'18px',color:'#aaa'}).setOrigin(0.5);
+  sc.input.once('pointerdown',()=>sc.scene.restart());
+}
+function update(){}
+</script>
+</body>
+</html>

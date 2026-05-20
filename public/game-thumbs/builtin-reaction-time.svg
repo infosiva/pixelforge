@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160">
+  <rect width="200" height="160" fill="#0a1a0a"/>
+  <circle cx="100" cy="80" r="55" fill="#052d05" stroke="#16a34a" stroke-width="2"/>
+  <circle cx="100" cy="80" r="55" fill="url(#gg)" opacity="0.5"/>
+  <circle cx="100" cy="80" r="40" fill="#0a3d0a" stroke="#22c55e" stroke-width="1.5"/>
+  <circle cx="100" cy="80" r="24" fill="#4ade80" opacity="0.9"/>
+  <circle cx="100" cy="80" r="16" fill="#fff" opacity="0.95"/>
+  <text x="100" y="86" font-size="14" font-weight="900" text-anchor="middle" fill="#0a1a0a">TAP!</text>
+  <text x="100" y="148" font-size="13" font-weight="800" text-anchor="middle" fill="#4ade80">187 ms</text>
+  <text x="100" y="22" font-size="11" font-weight="700" text-anchor="middle" fill="rgba(255,255,255,0.5)">⚡ REACTION TIME</text>
+  <defs><radialGradient id="gg" cx="50%" cy="50%"><stop offset="0%" stop-color="#4ade80" stop-opacity="0.4"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs>
+</svg>

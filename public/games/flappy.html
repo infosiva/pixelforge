@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><style>*{margin:0;padding:0}body{background:#70c5ce;overflow:hidden}canvas{display:block;max-width:100%}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+window.addEventListener("message",function(e){if(e.data&&e.data.type==="GAMEPAD_KEY"){var ev=new KeyboardEvent(e.data.down?"keydown":"keyup",{key:e.data.key,code:e.data.key,bubbles:true});window.dispatchEvent(ev);}});
+
+const W=400,H=600,GAP=160,PIPE_W=60,SPEED=220;
+let bird,pipes,score,scoreTxt,best,bestTxt,alive,started,bg,ground;
+
+const cfg={type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#70c5ce',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},
+  physics:{default:'arcade',arcade:{gravity:{y:1800},debug:false}},
+  scene:{preload,create,update}};
+new Phaser.Game(cfg);
+
+function preload(){}
+function create(){
+  best=0;
+  // bg layers
+  const gfx=this.add.graphics();
+  // Sky gradient via rect
+  gfx.fillGradientStyle(0x70c5ce,0x70c5ce,0xaee8f5,0xaee8f5,1);
+  gfx.fillRect(0,0,W,H-80);
+
+  // Ground
+  gfx.fillStyle(0xded895);gfx.fillRect(0,H-80,W,80);
+  gfx.fillStyle(0x7ec850);gfx.fillRect(0,H-80,W,14);
+
+  pipes=this.physics.add.group();
+  bird=this.physics.add.image(100,H/2,'').setDisplaySize(38,28);
+  // draw bird
+  const bc=this.add.graphics();
+  bc.fillStyle(0xffe100);bc.fillEllipse(0,0,38,28);
+  bc.fillStyle(0xff6600);bc.fillTriangle(16,-4,28,0,16,4);
+  bc.fillStyle(0x000000);bc.fillCircle(8,-6,4);bc.fillStyle(0xffffff);bc.fillCircle(9,-7,2);
+  bc.generateTexture('bird',38,28);bc.destroy();
+  bird=this.physics.add.image(100,H/2,'bird');
+  bird.setCollideWorldBounds(false);bird.body.allowGravity=false;
+
+  // pipe texture
+  const pc=this.add.graphics();
+  pc.fillStyle(0x5cb800);pc.fillRect(0,0,PIPE_W,400);
+  pc.fillStyle(0x7de900);pc.fillRect(0,0,PIPE_W,400);
+  pc.lineStyle(2,0x3a8000);pc.strokeRect(0,0,PIPE_W,400);
+  pc.fillStyle(0x4aa600);pc.fillRect(-6,0,PIPE_W+12,32);
+  pc.generateTexture('pipe',PIPE_W+12,400);pc.destroy();
+
+  score=0;alive=false;started=false;
+  scoreTxt=this.add.text(W/2,60,'',{fontSize:'52px',color:'#fff',stroke:'#000',strokeThickness:4,fontStyle:'bold'}).setOrigin(0.5);
+  bestTxt=this.add.text(W/2,120,'',{fontSize:'22px',color:'#ffe000',stroke:'#000',strokeThickness:3}).setOrigin(0.5);
+
+  const hint=this.add.text(W/2,H/2,'Tap or SPACE to start',{fontSize:'24px',color:'#fff',stroke:'#000',strokeThickness:3}).setOrigin(0.5);
+  this.tweens.add({targets:hint,alpha:0,duration:800,yoyo:true,repeat:-1});
+
+  const flap=()=>{
+    if(!alive&&!started){started=true;alive=true;bird.body.allowGravity=true;hint.destroy();spawnPipes.call(this);this.pipeTimer=this.time.addEvent({delay:1800,callback:spawnPipes,callbackScope:this,loop:true});return;}
+    if(alive)bird.setVelocityY(-480);
+  };
+  this.input.on('pointerdown',flap);
+  this.input.keyboard.on('keydown-SPACE',flap);
+
+  this.physics.world.setBounds(0,0,W,H-80);
+  bird.setDepth(2);scoreTxt.setDepth(3);bestTxt.setDepth(3);
+}
+
+function spawnPipes(){
+  if(!alive)return;
+  const sc=this;
+  const top=Phaser.Math.Between(60,H-80-GAP-60);
+  const p1=pipes.create(W+10,top-400+32,'pipe').setFlipY(true).setOrigin(0,0);
+  const p2=pipes.create(W+10,top+GAP,'pipe').setOrigin(0,0);
+  [p1,p2].forEach(p=>{p.body.allowGravity=false;p.setVelocityX(-SPEED);p.scored=false;p.setDepth(1);});
+}
+
+function update(){
+  if(!alive||!started)return;
+  if(bird.y>H-80||bird.y<-20){die.call(this);return;}
+  bird.angle=Phaser.Math.Clamp(bird.body.velocity.y*0.06,-30,70);
+
+  pipes.getChildren().forEach(p=>{
+    if(!p.scored&&p.x+PIPE_W+12<100){p.scored=true;score++;scoreTxt.setText(score);
+      if(score>best){best=score;bestTxt.setText('Best: '+best);}
+    }
+    if(p.x<-80)p.destroy();
+    if(Phaser.Geom.Intersects.RectangleToRectangle(
+      new Phaser.Geom.Rectangle(bird.x-16,bird.y-12,32,24),
+      new Phaser.Geom.Rectangle(p.x-6,p.y,PIPE_W+12,400))){die.call(this);}
+  });
+}
+
+function die(){
+  if(!alive)return;alive=false;
+  if(this.pipeTimer)this.pipeTimer.remove();
+  bird.body.allowGravity=false;bird.setVelocityY(0);
+  this.cameras.main.shake(200,0.012);
+  const over=this.add.text(W/2,H/2-40,'Game Over',{fontSize:'44px',color:'#ff3333',stroke:'#000',strokeThickness:5,fontStyle:'bold'}).setOrigin(0.5).setDepth(5);
+  const sub=this.add.text(W/2,H/2+20,'Score: '+score+'   Tap to restart',{fontSize:'22px',color:'#fff',stroke:'#000',strokeThickness:3}).setOrigin(0.5).setDepth(5);
+  this.input.once('pointerdown',()=>this.scene.restart());
+  this.input.keyboard.once('keydown-SPACE',()=>this.scene.restart());
+}
+</script>
+</body>
+</html>

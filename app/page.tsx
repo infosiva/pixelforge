@@ -222,18 +222,19 @@ export default async function HomePage() {
 
         /* STATS */
         .stats-row {
-          display: flex; gap: 12px; flex-wrap: wrap;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
           margin-bottom: 40px;
         }
         .stat-chip {
           display: flex; align-items: center; gap: 8px;
-          padding: 10px 16px; border-radius: 12px;
+          padding: 10px 14px; border-radius: 12px;
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.07);
-          flex: 1; min-width: 120px;
         }
-        .stat-icon { font-size: 18px; }
-        .stat-value { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.02em; }
+        .stat-icon { font-size: 16px; flex-shrink: 0; }
+        .stat-value { font-size: 16px; font-weight: 900; color: #fff; letter-spacing: -0.02em; }
         .stat-label { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
 
         /* BUILD CTA */
@@ -352,23 +353,32 @@ export default async function HomePage() {
         .mobile-fab {
           display: none;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .build-cta-inner { grid-template-columns: 1fr; padding: 28px 20px; gap: 24px; }
           .build-cta-visual { display: none; }
+          .controller-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px) {
+          .pf-wrap { padding: 0 14px; }
+          .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 24px; }
+          .stat-chip { padding: 8px 12px; }
+          .stat-value { font-size: 15px; }
+          .stat-label { font-size: 10px; }
+          .ticker-bar { padding: 8px 12px; gap: 8px; }
+          .ticker-item { font-size: 11px; padding: 0 20px; }
           .controller-grid { grid-template-columns: 1fr; }
-          .stats-row { gap: 8px; }
-          .stat-chip { min-width: calc(50% - 4px); }
+          .build-cta-title { font-size: 24px; }
           .mobile-fab {
-            display: flex; align-items: center; gap: 10;
-            position: fixed; bottom: 20px; right: 20px; z-index: 100;
-            padding: 14px 22px; border-radius: 50px;
+            display: flex; align-items: center; gap: 8px;
+            position: fixed; bottom: 16px; right: 16px; z-index: 100;
+            padding: 12px 18px; border-radius: 50px;
             background: linear-gradient(135deg,#7c3aed,#ec4899);
-            color: #fff; font-weight: 900; font-size: 15px;
+            color: #fff; font-weight: 900; font-size: 14px;
             text-decoration: none;
-            box-shadow: 0 4px 24px rgba(124,58,237,0.55), 0 0 0 1px rgba(255,255,255,0.1);
-            animation: fab-bounce 3s ease-in-out infinite;
+            box-shadow: 0 4px 24px rgba(124,58,237,0.55);
           }
-          @keyframes fab-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+          /* push page content above FAB */
+          .pf-wrap { padding-bottom: 80px; }
         }
       `}</style>
     </>

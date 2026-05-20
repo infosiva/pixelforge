@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><style>*{margin:0;padding:0}body{background:#1a1a2e;overflow:hidden}canvas{display:block;max-width:100%}</style></head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+window.addEventListener("message",function(e){if(e.data&&e.data.type==="GAMEPAD_KEY"){var ev=new KeyboardEvent(e.data.down?"keydown":"keyup",{key:e.data.key,code:e.data.key,bubbles:true});window.dispatchEvent(ev);}});
+
+const W=800,H=500,GY=420;
+let runner,obstacles,coins,bgLayers,score,speed,alive,scoreTxt,bestTxt,best,distTick,coinCount,coinTxt;
+
+const cfg={type:Phaser.CANVAS,width:W,height:H,backgroundColor:'#1a1a2e',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},
+  physics:{default:'arcade',arcade:{gravity:{y:1400},debug:false}},
+  scene:{preload,create,update}};
+new Phaser.Game(cfg);
+
+function preload(){}
+function create(){
+  best=0;alive=false;score=0;speed=300;coinCount=0;distTick=0;
+
+  // parallax bg
+  bgLayers=[];
+  const g=this.add.graphics();
+  // Stars
+  for(let i=0;i<120;i++){g.fillStyle(0xffffff,Math.random()*0.8);g.fillRect(Math.random()*W,Math.random()*GY,Math.random()<0.3?2:1,1);}
+  // Mountains
+  g.fillStyle(0x2a1a5e);
+  for(let i=0;i<6;i++){const x=i*160,w=180,h=Phaser.Math.Between(80,160);g.fillTriangle(x,GY-20,x+w/2,GY-20-h,x+w,GY-20);}
+  g.generateTexture('bg',W,H);g.destroy();
+  this.add.tileSprite(0,0,W,H,'bg').setOrigin(0,0);
+
+  // Ground
+  const gg=this.add.graphics();
+  gg.fillStyle(0x4a3580);gg.fillRect(0,0,W,80);
+  gg.fillStyle(0x7c5cbf);gg.fillRect(0,0,W,8);
+  gg.generateTexture('ground',W,80);gg.destroy();
+  const ground=this.physics.add.staticImage(W/2,GY+40,'ground');
+
+  // Runner texture
+  const rt=this.add.graphics();
+  rt.fillStyle(0x00e5ff);rt.fillRoundedRect(0,0,28,44,4);
+  rt.fillStyle(0xffffff);rt.fillRect(6,4,8,8);rt.fillRect(16,4,6,8);
+  rt.fillStyle(0xff6b9d);rt.fillRect(10,32,8,12);rt.fillRect(20,36,8,8);
+  rt.generateTexture('runner',28,44);rt.destroy();
+  runner=this.physics.add.image(120,GY-22,'runner');
+  runner.setCollideWorldBounds(true);runner.body.allowGravity=true;
+  this.physics.add.collider(runner,ground);
+
+  // Obstacle pool
+  const ot=this.add.graphics();
+  ot.fillStyle(0xff3333);ot.fillRoundedRect(0,0,32,48,4);
+  ot.fillStyle(0xff6655);ot.fillRect(4,4,24,8);
+  ot.generateTexture('obs',32,48);ot.destroy();
+
+  const ct=this.add.graphics();
+  ct.fillStyle(0xffd700);ct.fillCircle(12,12,12);
+  ct.fillStyle(0xffaa00);ct.fillCircle(12,12,7);
+  ct.generateTexture('coin',24,24);ct.destroy();
+
+  obstacles=this.physics.add.group();
+  coins=this.physics.add.group();
+
+  // Score
+  scoreTxt=this.add.text(40,20,'Score: 0',{fontSize:'22px',color:'#fff',fontStyle:'bold',stroke:'#000',strokeThickness:3});
+  coinTxt=this.add.text(240,20,'🪙 0',{fontSize:'22px',color:'#ffd700',fontStyle:'bold',stroke:'#000',strokeThickness:3});
+  bestTxt=this.add.text(W-40,20,'Best: 0',{fontSize:'20px',color:'#aaa',stroke:'#000',strokeThickness:2}).setOrigin(1,0);
+
+  const hint=this.add.text(W/2,H/2,'Tap / SPACE / ↑ to start',{fontSize:'26px',color:'#fff',stroke:'#000',strokeThickness:4}).setOrigin(0.5);
+  this.tweens.add({targets:hint,alpha:0,duration:700,yoyo:true,repeat:-1,onUpdate:()=>{if(alive)hint.destroy();}});
+
+  const jump=()=>{
+    if(!alive){alive=true;spawnObstacle.call(this);this.obsTimer=this.time.addEvent({delay:1600,callback:spawnObstacle,callbackScope:this,loop:true});this.coinTimer=this.time.addEvent({delay:2200,callback:spawnCoin,callbackScope:this,loop:true});return;}
+    if(runner.body.touching.down||runner.body.blocked.down)runner.setVelocityY(-780);
+  };
+  this.input.on('pointerdown',jump);
+  this.input.keyboard.on('keydown-SPACE',jump);
+  this.input.keyboard.on('keydown-UP',jump);
+  this.input.keyboard.on('keydown-W',jump);
+
+  this.physics.add.overlap(runner,obstacles,()=>{if(alive)die.call(this);});
+  this.physics.add.overlap(runner,coins,(r,c)=>{c.destroy();coinCount++;coinTxt.setText('🪙 '+coinCount);score+=50;scoreTxt.setText('Score: '+score);});
+}
+
+function spawnObstacle(){
+  if(!alive)return;
+  const h=Phaser.Math.Between(32,80);
+  const obs=obstacles.create(W+20,GY-h/2,'obs').setDisplaySize(32,h);
+  obs.body.allowGravity=false;obs.setVelocityX(-speed);obs.setImmovable(true);
+}
+function spawnCoin(){
+  if(!alive)return;
+  const y=Phaser.Math.Between(GY-120,GY-40);
+  const c=coins.create(W+10,y,'coin');c.body.allowGravity=false;c.setVelocityX(-speed);
+}
+
+function die(){
+  alive=false;
+  if(this.obsTimer)this.obsTimer.remove();if(this.coinTimer)this.coinTimer.remove();
+  if(score>best){best=score;bestTxt.setText('Best: '+best);}
+  this.cameras.main.shake(300,0.01);
+  this.time.delayedCall(400,()=>{
+    this.add.rectangle(W/2,H/2,460,200,0x000,0.85).setOrigin(0.5).setDepth(5);
+    this.add.text(W/2,H/2-60,'💀 Game Over',{fontSize:'38px',color:'#ff4444',fontStyle:'bold'}).setOrigin(0.5).setDepth(6);
+    this.add.text(W/2,H/2+10,'Score: '+score+' | Coins: '+coinCount,{fontSize:'22px',color:'#fff'}).setOrigin(0.5).setDepth(6);
+    this.add.text(W/2,H/2+60,'Tap to restart',{fontSize:'20px',color:'#aaa'}).setOrigin(0.5).setDepth(6);
+    this.input.once('pointerdown',()=>this.scene.restart());
+    this.input.keyboard.once('keydown-SPACE',()=>this.scene.restart());
+  });
+}
+
+function update(t,dt){
+  if(!alive)return;
+  score+=Math.round(dt/100);scoreTxt.setText('Score: '+score);
+  speed=Math.min(600,300+score*0.08);
+  obstacles.getChildren().forEach(o=>{o.setVelocityX(-speed);if(o.x<-50)o.destroy();});
+  coins.getChildren().forEach(c=>{c.setVelocityX(-speed);if(c.x<-50)c.destroy();});
+  runner.angle=runner.body.velocity.y<-100?-12:runner.body.velocity.y>200?8:0;
+}
+</script>
+</body>
+</html>

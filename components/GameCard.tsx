@@ -1,7 +1,7 @@
 'use client'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Play, Heart, Users, Gamepad2 } from 'lucide-react'
+import { Play, Heart, Users, Gamepad2, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { Game } from '@/lib/types'
 
 /* Per-genre visual identity */
@@ -55,9 +55,26 @@ const GENRE: Record<string, {
 
 function fmt(n: number) { return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n) }
 
+type Rating = 'up' | 'down' | null
+
 export default function GameCard({ game, featured }: { game: Game; featured?: boolean }) {
   const g = GENRE[game.genre] ?? GENRE.other
   const cardRef = useRef<HTMLDivElement>(null)
+  const [rating, setRating] = useState<Rating>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(`rating-${game.id}`) as Rating
+    if (stored) setRating(stored)
+  }, [game.id])
+
+  function rate(e: React.MouseEvent, r: Rating) {
+    e.preventDefault()
+    e.stopPropagation()
+    const next = rating === r ? null : r
+    setRating(next)
+    if (next) localStorage.setItem(`rating-${game.id}`, next)
+    else localStorage.removeItem(`rating-${game.id}`)
+  }
 
   function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     // Skip 3D tilt on touch devices — hover events don't apply and can cause stuck states
@@ -143,6 +160,23 @@ export default function GameCard({ game, featured }: { game: Game; featured?: bo
               <span><Users size={10} /> {fmt(game.playCount)}</span>
               <span><Heart size={10} /> {fmt(game.likeCount)}</span>
             </div>
+          </div>
+          <div className="gc-rating">
+            <button
+              className={`gc-rate-btn ${rating === 'up' ? 'active-up' : ''}`}
+              onClick={e => rate(e, 'up')}
+              title="Good game"
+            >
+              <ThumbsUp size={11} />
+            </button>
+            <button
+              className={`gc-rate-btn ${rating === 'down' ? 'active-down' : ''}`}
+              onClick={e => rate(e, 'down')}
+              title="Not for me"
+            >
+              <ThumbsDown size={11} />
+            </button>
+            {rating && <span className="gc-rated-label">{rating === 'up' ? 'Liked!' : 'Noted'}</span>}
           </div>
         </div>
       </div>
@@ -262,34 +296,60 @@ export default function GameCard({ game, featured }: { game: Game; featured?: bo
         .gc:hover .gc-bar { opacity: 1; }
 
         /* Info */
-        .gc-info { padding: 12px 14px 14px; }
-        .gc-featured .gc-info { padding: 16px 18px 18px; }
+        .gc-info { padding: 10px 12px 12px; }
+        .gc-featured .gc-info { padding: 14px 16px 16px; }
         .gc-title {
-          font-size: 14px; font-weight: 800; color: #fff;
-          margin-bottom: 4px; letter-spacing: -0.01em;
+          font-size: 13px; font-weight: 800; color: #fff;
+          margin-bottom: 3px; letter-spacing: -0.01em;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .gc-featured .gc-title { font-size: 17px; margin-bottom: 6px; }
+        .gc-featured .gc-title { font-size: 16px; margin-bottom: 5px; }
         .gc-desc {
           font-size: 11px; color: rgba(255,255,255,0.45);
-          line-height: 1.5; margin-bottom: 10px;
+          line-height: 1.4; margin-bottom: 8px;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
           overflow: hidden;
         }
-        .gc-featured .gc-desc { font-size: 13px; }
+        .gc-featured .gc-desc { font-size: 12px; }
         .gc-meta {
           display: flex; align-items: center;
           justify-content: space-between;
         }
         .gc-author {
-          font-size: 10px; color: rgba(255,255,255,0.25);
-          display: flex; align-items: center; gap: 4px;
+          font-size: 9px; color: rgba(255,255,255,0.25);
+          display: flex; align-items: center; gap: 3px;
         }
         .gc-stats {
-          display: flex; gap: 10px;
-          font-size: 10px; color: rgba(255,255,255,0.35);
+          display: flex; gap: 8px;
+          font-size: 9px; color: rgba(255,255,255,0.35);
         }
         .gc-stats span { display: flex; align-items: center; gap: 3px; }
+        .gc-rating {
+          display: flex; align-items: center; gap: 5px;
+          margin-top: 7px; padding-top: 7px;
+          border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .gc-rate-btn {
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 5px;
+          color: rgba(255,255,255,0.4);
+          padding: 3px 7px;
+          cursor: pointer;
+          display: flex; align-items: center;
+          transition: all 0.15s;
+        }
+        .gc-rate-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        .gc-rate-btn.active-up { background: rgba(52,211,153,0.18); border-color: #34d39966; color: #34d399; }
+        .gc-rate-btn.active-down { background: rgba(248,113,113,0.15); border-color: #f8717166; color: #f87171; }
+        .gc-rated-label { font-size: 9px; color: rgba(255,255,255,0.35); margin-left: 2px; }
+        @media (max-width: 640px) {
+          .gc-info { padding: 8px 9px 10px; }
+          .gc-title { font-size: 12px; }
+          .gc-desc { display: none; }
+          .gc-meta { flex-direction: column; align-items: flex-start; gap: 3px; }
+          .gc-rating { margin-top: 6px; padding-top: 6px; }
+        }
       `}</style>
     </Link>
   )

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#fff;overflow:hidden}
+h1{font-size:48px;font-weight:900;color:#f59e0b;letter-spacing:-2px;margin-bottom:8px}
+.meta{display:flex;gap:24px;margin-bottom:16px}
+.box{background:rgba(255,255,255,0.08);border-radius:10px;padding:8px 20px;text-align:center}
+.box-label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px}
+.box-val{font-size:24px;font-weight:900;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;background:rgba(255,255,255,0.06);padding:12px;border-radius:16px;width:360px}
+.cell{width:80px;height:80px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;transition:all 0.1s;background:rgba(255,255,255,0.04)}
+.hint{font-size:13px;color:#555;margin-top:14px}
+</style>
+</head>
+<body>
+<h1>2048</h1>
+<div class="meta">
+  <div class="box"><div class="box-label">Score</div><div class="box-val" id="score">0</div></div>
+  <div class="box"><div class="box-label">Best</div><div class="box-val" id="best">0</div></div>
+</div>
+<div class="grid" id="grid"></div>
+<div class="hint">Arrow keys or swipe to play</div>
+<script>
+const COLS=['#eee4da','#ede0c8','#f2b179','#f59563','#f67c5f','#f65e3b','#edcf72','#edcc61','#edc850','#edc53f','#edc22e'];
+const TCOLS=['#776e65','#776e65','#f9f6f2','#f9f6f2','#f9f6f2','#f9f6f2','#f9f6f2','#f9f6f2','#f9f6f2','#f9f6f2','#f9f6f2'];
+let board,score,best;
+const $ = id=>document.getElementById(id);
+const gridEl=$('grid');
+best=+localStorage.getItem('2048best')||0;$('best').textContent=best;
+
+function init(){board=Array(4).fill(null).map(()=>Array(4).fill(0));score=0;$('score').textContent=0;add();add();render();}
+function add(){const empty=[];board.forEach((r,i)=>r.forEach((v,j)=>{if(!v)empty.push([i,j]);}));if(!empty.length)return;const[i,j]=empty[Math.floor(Math.random()*empty.length)];board[i][j]=Math.random()<0.9?2:4;}
+function render(){
+  gridEl.innerHTML='';
+  board.forEach(row=>row.forEach(v=>{
+    const idx=v?Math.log2(v):0;
+    const d=document.createElement('div');d.className='cell';
+    d.style.background=COLS[Math.min(idx,10)]||'#3c3a32';
+    d.style.color=TCOLS[Math.min(idx,10)]||'#f9f6f2';
+    d.style.fontSize=v>999?'20px':v>99?'24px':'28px';
+    if(v)d.textContent=v;
+    gridEl.appendChild(d);
+  }));
+}
+function slide(row){let r=row.filter(v=>v);for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;score+=r[i];r[i+1]=0;}}r=r.filter(v=>v);while(r.length<4)r.push(0);return r;}
+function move(dir){let moved=false;const prev=JSON.stringify(board);
+  if(dir==='L')board=board.map(r=>slide(r));
+  if(dir==='R')board=board.map(r=>slide([...r].reverse()).reverse());
+  if(dir==='U'){for(let j=0;j<4;j++){let col=board.map(r=>r[j]);col=slide(col);board.forEach((r,i)=>r[j]=col[i]);}}
+  if(dir==='D'){for(let j=0;j<4;j++){let col=board.map(r=>r[j]).reverse();col=slide(col).reverse();board.forEach((r,i)=>r[j]=col[i]);}}
+  moved=JSON.stringify(board)!==prev;
+  if(moved){add();$('score').textContent=score;if(score>best){best=score;$('best').textContent=best;localStorage.setItem('2048best',best);}}
+  render();
+}
+document.addEventListener('keydown',e=>{
+  const m={'ArrowLeft':'L','ArrowRight':'R','ArrowUp':'U','ArrowDown':'D'};
+  if(m[e.key]){e.preventDefault();move(m[e.key]);}
+});
+let sx,sy;
+document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>Math.abs(dy)){move(dx>0?'R':'L');}else{move(dy>0?'D':'U');}
+});
+init();
+</script>
+</body>
+</html>

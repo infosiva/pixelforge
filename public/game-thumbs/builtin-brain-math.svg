@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160">
+  <rect width="200" height="160" fill="#1a0a2e"/>
+  <!-- problem -->
+  <rect x="20" y="18" width="160" height="70" rx="14" fill="#12082a" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="100" y="62" font-size="38" font-weight="900" text-anchor="middle" fill="#fff">8 × 7 = ?</text>
+  <!-- options -->
+  <rect x="20" y="100" width="72" height="36" rx="10" fill="#1a0a2e" stroke="#f87171" stroke-width="1.5"/>
+  <text x="56" y="123" font-size="18" font-weight="900" text-anchor="middle" fill="#f87171">42</text>
+  <rect x="100" y="100" width="72" height="36" rx="10" fill="#1a0a2e" stroke="#f87171" stroke-width="1.5"/>
+  <text x="136" y="123" font-size="18" font-weight="900" text-anchor="middle" fill="#f87171">54</text>
+  <rect x="20" y="143" width="72" height="14" rx="4" fill="rgba(74,222,128,0.35)" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="56" y="154" font-size="12" font-weight="900" text-anchor="middle" fill="#4ade80">56 ✓</text>
+  <rect x="100" y="143" width="72" height="14" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="136" y="154" font-size="12" font-weight="900" text-anchor="middle" fill="rgba(255,255,255,0.4)">63</text>
+  <!-- timer bar -->
+  <rect x="20" y="88" width="160" height="6" rx="3" fill="rgba(255,255,255,0.08)"/>
+  <rect x="20" y="88" width="95" height="6" rx="3" fill="#4ade80"/>
+</svg>
