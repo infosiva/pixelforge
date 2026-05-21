@@ -49,8 +49,7 @@ async function blobList(prefix: string): Promise<string[]> {
 export async function saveGame(game: Game): Promise<void> {
   memStore.set(game.id, game)
   if (!hasBlob) return
-  await blobPut(`pixelforge/games/${game.id}/meta.json`, JSON.stringify(game), 'application/json')
-  // Update index
+  // Only write to the index — skip per-game meta.json to save Blob storage
   const existing = await listGames(200)
   const updated = [game, ...existing.filter(g => g.id !== game.id)]
   await blobPut('pixelforge/games-index.json', JSON.stringify(updated), 'application/json')
@@ -76,21 +75,14 @@ export async function listGames(limit = 50): Promise<Game[]> {
 }
 
 export async function getGame(id: string): Promise<Game | null> {
-  // For Blob-backed deployments, prefer persisted data (has up-to-date play counts)
-  if (hasBlob) {
-    try {
-      const urls = await blobList(`pixelforge/games/${id}/meta.json`)
-      if (urls.length) {
-        const text = await blobGet(urls[0])
-        if (text) {
-          const game = JSON.parse(text) as Game
-          memStore.set(id, game) // warm cache
-          return game
-        }
-      }
-    } catch { /* fall through to memStore */ }
-  }
   if (memStore.has(id)) return memStore.get(id)!
+  // Load from index if not in memory
+  if (hasBlob) {
+    const games = await listGames(500)
+    const game = games.find(g => g.id === id) ?? null
+    if (game) memStore.set(id, game)
+    return game
+  }
   return null
 }
 
