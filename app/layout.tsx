@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     siteName: 'PixelForge AI',
     title: 'PixelForge AI — Build & Play AI Games',
     description: 'Describe a game. AI builds it. Play it instantly.',
+    images: [{ url: '/og.png', width: 1200, height: 630 }],
   },
   metadataBase: new URL('https://arcadeforge.app'),
 }
