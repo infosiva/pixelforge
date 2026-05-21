@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useIsMobile } from '@/lib/useIsMobile'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Heart, Share2, RotateCcw, Wand2, Maximize2, Play, Trophy, Sparkles, Check, Gamepad2, ChevronRight, Info } from 'lucide-react'
+import { Heart, Share2, RotateCcw, Wand2, Maximize2, Play, Trophy, Sparkles, Check, Gamepad2, ChevronRight, Info, Download, Loader2, Pencil } from 'lucide-react'
 import type { Game } from '@/lib/types'
 import { createGamepadManager, fireKey } from '@/lib/gamepad'
 
@@ -100,6 +100,10 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
   const [score, setScore]             = useState<number | null>(null)
   const [gamepadConnected, setGamepadConnected] = useState(false)
   const [showControls, setShowControls] = useState(false)
+  const [refineOpen, setRefineOpen]   = useState(false)
+  const [refineText, setRefineText]   = useState('')
+  const [refining, setRefining]       = useState(false)
+  const [refineError, setRefineError] = useState('')
   const isMobile = useIsMobile()
   const startTime = useRef(Date.now())
 
@@ -174,6 +178,47 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
 
   function handleRemix() {
     router.push(`/create?remix=${game.id}&prompt=${encodeURIComponent(game.prompt)}`)
+  }
+
+  function handleExport() {
+    const blob = new Blob([htmlContent], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${game.title.replace(/\s+/g, '-').toLowerCase()}.html`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function handleRefine() {
+    if (!refineText.trim() || refining) return
+    setRefining(true)
+    setRefineError('')
+    try {
+      const res = await fetch('/api/refine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameId: game.id,
+          htmlUrl: game.htmlUrl,
+          request: refineText.trim(),
+          genre: game.genre,
+          ageRating: game.ageRating,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setRefineError(data.error || 'Refinement failed'); return }
+      // Fetch updated HTML and reload the iframe
+      const html = await fetch(data.htmlUrl, { cache: 'no-store' }).then(r => r.text())
+      setHtmlContent(html)
+      game.htmlUrl = data.htmlUrl
+      setRefineText('')
+      setRefineOpen(false)
+    } catch {
+      setRefineError('Network error — try again')
+    } finally {
+      setRefining(false)
+    }
   }
 
   const iframeAttrs = {
@@ -281,6 +326,11 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
             <button onClick={handleRemix} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}>
               <RotateCcw size={13} /> <span className="hide-xs">Remix</span>
             </button>
+            {htmlContent && !demoMode && (
+              <button onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}>
+                <Download size={13} /> <span className="hide-xs">Export</span>
+              </button>
+            )}
             <Link href="/create" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: '#fff' }}>
               <Wand2 size={13} /> <span className="hide-xs">Build</span>
             </Link>
@@ -425,6 +475,65 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
               </div>
             )}
           </div>
+
+          {/* ── Refine panel ── */}
+          {!demoMode && htmlContent && (
+            <div style={{ marginTop: 10, borderRadius: 14, background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
+              {/* Header toggle */}
+              <div
+                onClick={() => setRefineOpen(o => !o)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Pencil size={14} color="#a78bfa" />
+                  <span style={{ fontSize: 12, fontWeight: 800, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Refine Game</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginLeft: 4 }}>· ask AI to modify this game</span>
+                </div>
+                <ChevronRight size={14} color="rgba(255,255,255,0.3)" style={{ transform: refineOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+              </div>
+
+              {refineOpen && (
+                <div style={{ padding: '0 16px 16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  {/* Quick chips */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12, marginBottom: 10 }}>
+                    {['Make it harder', 'Add power-ups', 'Add a boss level', 'Change the theme', 'Add sound effects', 'Make enemies faster'].map(chip => (
+                      <button
+                        key={chip}
+                        onClick={() => setRefineText(chip)}
+                        style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: refineText === chip ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.06)', border: `1px solid ${refineText === chip ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.1)'}`, color: refineText === chip ? '#c4b5fd' : 'rgba(255,255,255,0.45)', transition: 'all 160ms cubic-bezier(0.23,1,0.32,1)' }}
+                      >{chip}</button>
+                    ))}
+                  </div>
+
+                  {/* Text input + submit */}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                    <textarea
+                      value={refineText}
+                      onChange={e => setRefineText(e.target.value.slice(0, 300))}
+                      placeholder="Describe what to change… (e.g. 'double the speed and add 3 lives')"
+                      rows={2}
+                      style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: '#fff', resize: 'none', fontFamily: 'inherit', outline: 'none' }}
+                      onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleRefine() }}
+                    />
+                    <button
+                      onClick={handleRefine}
+                      disabled={refining || !refineText.trim()}
+                      style={{ padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: refining || !refineText.trim() ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 6, opacity: refining || !refineText.trim() ? 0.5 : 1, transition: 'opacity 160ms, transform 160ms cubic-bezier(0.23,1,0.32,1)', flexShrink: 0 }}
+                      className="btn-press"
+                    >
+                      {refining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                      {refining ? 'Refining…' : 'Apply'}
+                    </button>
+                  </div>
+
+                  {refineError && (
+                    <p style={{ marginTop: 8, fontSize: 12, color: '#f87171' }}>{refineError}</p>
+                  )}
+                  <p style={{ marginTop: 6, fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>{refineText.length}/300 · Cmd+Enter to apply</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Mobile: more games horizontal strip ── */}
           {isMobile && moreGames.length > 0 && (
