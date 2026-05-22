@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             inset: 0;
             background: repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 2px);
             pointer-events: none;
-            z-index: 9999;
+            z-index: 100;
           }
         `}} />
       </head>
