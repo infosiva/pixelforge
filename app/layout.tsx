@@ -6,6 +6,7 @@ import ChatBot from '@/components/ChatBot'
 import { PIXELFORGE_CHAT_CONFIG } from '@/lib/chatbot-configs'
 import CookieConsent from "../components/CookieConsent";
 import Footer from "../components/Footer";
+import BackToTop from '@/components/BackToTop'
 
 export const metadata: Metadata = {
   title: { default: 'PixelForge AI — Build & Play AI Games', template: '%s | PixelForge AI' },
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1">{children}</main>
         <Footer siteName="PixelForge AI" tagline="Build & play browser games with AI. No downloads. No code." />
         <ChatBot config={PIXELFORGE_CHAT_CONFIG} />
+        <BackToTop accentColor="#a855f7" />
       <CookieConsent />
         {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
         <script src="http://31.97.56.148:3098/t.js" data-site="arcadeforge.app" defer></script>
