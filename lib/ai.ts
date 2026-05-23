@@ -452,7 +452,7 @@ export async function getProviderStatus(): Promise<Record<string, { hasKey: bool
 // ── PixelForge game generation shims ─────────────────────────────────────────
 export async function generateGameCode(prompt: string, genre: string, ageRating: string): Promise<string> {
   return callAI(
-    `You are an expert Phaser 3 game developer. Generate a complete, self-contained HTML5 game using Phaser 3 CDN. The game must be playable immediately. Output ONLY the complete HTML file, no explanation.`,
+    `You are an expert Phaser 3 game developer. Generate a complete, self-contained HTML5 game using Phaser 3. Use this exact CDN URL for Phaser: https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js — The game must be playable immediately. Output ONLY the complete HTML file, no explanation.`,
     [{ role: 'user', content: `Create a ${genre} game (age rating: ${ageRating}): ${prompt}` }],
     4000,
     'best'

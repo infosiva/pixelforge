@@ -20,7 +20,7 @@ const DEMO_GAME_HTML = `<!DOCTYPE html>
 <html>
 <head><style>body{margin:0;background:#0a0a1a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;}</style></head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script src="https://arcadeforge.app/phaser.min.js"></script>
 <script>
 const W=800,H=500,SZ=20;
 let snake,dir,food,score,sc,alive=true;
@@ -113,7 +113,15 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
     if (isLocalGame) { setLoading(false); return }
     fetch(game.htmlUrl)
       .then(r => r.text())
-      .then(html => { setHtmlContent(html); setLoading(false) })
+      .then(html => {
+        // Rewrite CDN Phaser URLs to self-hosted so mobile browsers load reliably
+        const fixed = html.replace(
+          /https?:\/\/(?:cdn\.jsdelivr\.net\/npm\/phaser|unpkg\.com\/phaser|cdnjs\.cloudflare\.com\/ajax\/libs\/phaser)[^"'<\s]*/gi,
+          `${window.location.origin}/phaser.min.js`
+        )
+        setHtmlContent(fixed)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
     fetch('/api/play', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gameId: game.id }) })
   }, [game.id, game.htmlUrl, demoMode, isLocalGame])

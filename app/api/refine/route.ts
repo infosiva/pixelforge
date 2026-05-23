@@ -66,6 +66,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Refined game invalid — try a different request' }, { status: 500 })
   }
 
+  // Rewrite CDN Phaser URLs to self-hosted so mobile browsers load reliably
+  const origin = req.nextUrl.origin
+  newHtml = newHtml.replace(
+    /https?:\/\/(?:cdn\.jsdelivr\.net\/npm\/phaser|unpkg\.com\/phaser|cdnjs\.cloudflare\.com\/ajax\/libs\/phaser)[^"'<\s]*/gi,
+    `${origin}/phaser.min.js`
+  )
+
   // Store refined HTML under same gameId (overwrites previous version)
   const newHtmlUrl = await storeGameHtml(gameId, newHtml)
 

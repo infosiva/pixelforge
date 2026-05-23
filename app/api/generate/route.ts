@@ -61,6 +61,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Replace any CDN Phaser URL with self-hosted version so mobile browsers load it reliably
+  const origin = req.nextUrl.origin
+  html = html.replace(
+    /https?:\/\/(?:cdn\.jsdelivr\.net\/npm\/phaser|unpkg\.com\/phaser|cdnjs\.cloudflare\.com\/ajax\/libs\/phaser)[^"'<\s]*/gi,
+    `${origin}/phaser.min.js`
+  )
+
   const htmlUrl = await storeGameHtml(gameId, html)
 
   const game: Game = {
