@@ -58,9 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ChatBot config={PIXELFORGE_CHAT_CONFIG} />
         <BackToTop accentColor="#a855f7" />
       <CookieConsent />
-        {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
-        <script src="http://31.97.56.148:3098/t.js" data-site="arcadeforge.app" defer></script>
-            <Script async src="http://31.97.56.148:3100/script.js" data-website-id="6ab47163-0d4c-402d-a308-5e7049226c60" strategy="afterInteractive" />
+        <Script defer data-domain="arcadeforge.app" src="https://plausible.io/js/script.js" strategy="afterInteractive" />
       </body>
     </html>
   )
