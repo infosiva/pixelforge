@@ -1,142 +1,242 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Play, Wand2, ChevronRight } from 'lucide-react'
+import { Play, Wand2 } from 'lucide-react'
 import type { Game } from '@/lib/types'
 
-const GENRE_COLORS: Record<string, { bg: string; glow: string; emoji: string }> = {
-  arcade:      { bg: 'linear-gradient(145deg,#4a0932,#1a0315)', glow: '#f472b6', emoji: '👾' },
-  shooter:     { bg: 'linear-gradient(145deg,#3d0a0a,#120206)', glow: '#f87171', emoji: '🚀' },
-  platformer:  { bg: 'linear-gradient(145deg,#3a2200,#160d00)', glow: '#fbbf24', emoji: '🏃' },
-  puzzle:      { bg: 'linear-gradient(145deg,#003322,#001510)', glow: '#34d399', emoji: '🧩' },
-  rpg:         { bg: 'linear-gradient(145deg,#1a0a40,#0a0420)', glow: '#a78bfa', emoji: '⚔️' },
-  educational: { bg: 'linear-gradient(145deg,#003320,#001a10)', glow: '#4ade80', emoji: '🎓' },
-  other:       { bg: 'linear-gradient(145deg,#0a1840,#040820)', glow: '#60a5fa', emoji: '🎮' },
+const GENRE_TAGS = [
+  { label: 'Platformer', color: '#fbbf24', glow: 'rgba(251,191,36,0.35)' },
+  { label: 'Shooter',    color: '#f87171', glow: 'rgba(248,113,113,0.35)' },
+  { label: 'Puzzle',     color: '#34d399', glow: 'rgba(52,211,153,0.35)'  },
+  { label: 'RPG',        color: '#a78bfa', glow: 'rgba(167,139,250,0.35)' },
+  { label: 'Racing',     color: '#22d3ee', glow: 'rgba(34,211,238,0.35)'  },
+]
+
+const TERMINAL_LINES = [
+  { text: '> describe "space dino shooter"',  color: '#22d3ee',  delay: 0    },
+  { text: '  parsing game concept...',         color: '#666a8a',  delay: 600  },
+  { text: '  generating game logic...',        color: '#666a8a',  delay: 1200 },
+  { text: '  building Phaser scene...',        color: '#666a8a',  delay: 1800 },
+  { text: '  rendering pixel sprites...',      color: '#666a8a',  delay: 2400 },
+  { text: '✓ game ready [8.3s]',               color: '#4ade80',  delay: 3000 },
+  { text: '> launching in browser...',         color: '#22d3ee',  delay: 3600 },
+]
+
+const EXAMPLE_PROMPTS = [
+  '"Space game where you fight dinosaurs"',
+  '"Puzzle with gravity flip mechanic"',
+  '"Tower defense in medieval castle"',
+  '"Side-scroller with double jump"',
+  '"Bullet hell with power-ups"',
+]
+
+function TerminalWindow() {
+  const [visibleLines, setVisibleLines] = useState(0)
+  const [showCursor, setShowCursor] = useState(true)
+  const [promptIdx, setPromptIdx] = useState(0)
+
+  useEffect(() => {
+    // Cursor blink
+    const cursor = setInterval(() => setShowCursor(c => !c), 530)
+
+    // Reveal lines one by one
+    const timers: ReturnType<typeof setTimeout>[] = []
+    TERMINAL_LINES.forEach((_, i) => {
+      timers.push(setTimeout(() => setVisibleLines(i + 1), TERMINAL_LINES[i].delay + 400))
+    })
+
+    // Reset and cycle prompts
+    const reset = setTimeout(() => {
+      setVisibleLines(0)
+      setPromptIdx(p => (p + 1) % EXAMPLE_PROMPTS.length)
+    }, 5800)
+
+    return () => {
+      clearInterval(cursor)
+      timers.forEach(clearTimeout)
+      clearTimeout(reset)
+    }
+  }, [promptIdx])
+
+  const lines = TERMINAL_LINES.map((l, i) => ({
+    ...l,
+    text: i === 0 ? `> describe ${EXAMPLE_PROMPTS[promptIdx]}` : l.text,
+  }))
+
+  return (
+    <div className="terminal-wrap">
+      {/* CRT monitor bezel */}
+      <div className="crt-bezel">
+        <div className="crt-screen">
+          {/* scanline overlay */}
+          <div className="crt-scanlines" aria-hidden />
+          {/* screen content */}
+          <div className="crt-content">
+            {/* title bar */}
+            <div className="term-bar">
+              <div className="term-dots">
+                <span style={{ background: '#ff5f57' }} />
+                <span style={{ background: '#febc2e' }} />
+                <span style={{ background: '#28c840' }} />
+              </div>
+              <span className="term-title">pixelforge — game-builder</span>
+            </div>
+            {/* terminal output */}
+            <div className="term-body">
+              {lines.slice(0, visibleLines).map((line, i) => (
+                <div key={i} className="term-line" style={{ color: line.color }}>
+                  {line.text}
+                  {i === visibleLines - 1 && (
+                    <span className="term-cursor" style={{ opacity: showCursor ? 1 : 0 }}>▊</span>
+                  )}
+                </div>
+              ))}
+              {visibleLines === 0 && (
+                <div className="term-line" style={{ color: '#22d3ee' }}>
+                  {'> '}<span className="term-cursor" style={{ opacity: showCursor ? 1 : 0 }}>▊</span>
+                </div>
+              )}
+            </div>
+            {/* mini game preview that "appears" after generation */}
+            <div className="game-preview" style={{ opacity: visibleLines >= 7 ? 1 : 0 }}>
+              <div className="game-preview-inner">
+                <span className="preview-emoji">🦕</span>
+                <div className="preview-beams">
+                  <div className="beam beam1" />
+                  <div className="beam beam2" />
+                  <div className="beam beam3" />
+                </div>
+                <span className="preview-label">PLAYING NOW</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* CRT stand */}
+        <div className="crt-stand" />
+        <div className="crt-base" />
+      </div>
+    </div>
+  )
 }
 
-const ROTATING_WORDS = ['Build.', 'Play.', 'Create.', 'Share.', 'Remix.']
+function CoinInsertBtn({ href }: { href: string }) {
+  const [inserting, setInserting] = useState(false)
 
-function FloatingCard({ game, style, delay }: { game: Game; style: React.CSSProperties; delay: number }) {
-  const g = GENRE_COLORS[game.genre] ?? GENRE_COLORS.other
+  function handleClick() {
+    setInserting(true)
+    setTimeout(() => setInserting(false), 800)
+  }
+
   return (
-    <Link href={`/play/${game.id}`} style={{ textDecoration: 'none', ...style, display: 'block' }}>
-      <div className="float-card" style={{ animationDelay: `${delay}s` }}>
-        <div className="float-cover" style={{ background: g.bg }}>
-          <div className="float-glow" style={{ background: g.glow }} />
-          <span className="float-emoji">{g.emoji}</span>
-          <div className="float-play"><Play size={14} color="#fff" fill="#fff" /></div>
-        </div>
-        <div className="float-info">
-          <p className="float-title">{game.title}</p>
-          <p className="float-genre">{game.genre.toUpperCase()}</p>
-        </div>
-      </div>
+    <Link href={href} className={`coin-btn${inserting ? ' coin-inserting' : ''}`} onClick={handleClick}>
+      <span className="coin-icon" aria-hidden>🪙</span>
+      <span className="coin-text">INSERT COIN — BUILD FREE</span>
+      <span className="coin-glow" aria-hidden />
     </Link>
   )
 }
 
 export default function HeroSection({ featuredGames }: { featuredGames: Game[] }) {
-  const [wordIdx, setWordIdx] = useState(0)
   const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    const iv = setInterval(() => setWordIdx(i => (i + 1) % ROTATING_WORDS.length), 2200)
-    return () => clearInterval(iv)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   return (
     <section className="hero-section">
-      {/* Left: text */}
+      {/* ── LEFT: headline + CTAs ── */}
       <div className="hero-left">
         <div className="hero-badge">
           <span className="badge-dot" />
-          FREE TO PLAY · NO ACCOUNT NEEDED
+          FREE · NO ACCOUNT · NO DOWNLOAD
         </div>
 
-        <h1 className="hero-title">
-          <span className="hero-title-line1">AI Arcade.</span>
-          <span className="hero-title-line2">
-            {mounted ? (
-              <span key={wordIdx} className="rotating-word">
-                {ROTATING_WORDS[wordIdx]}
-              </span>
-            ) : (
-              <span className="rotating-word">{ROTATING_WORDS[0]}</span>
-            )}
-          </span>
+        <h1 className="hero-h1">
+          <span className="h1-top">Any Idea.</span>
+          <span className="h1-bottom">Instant Game.</span>
         </h1>
 
-        <p className="hero-desc">
-          Browser arcade powered by AI. Play 12+ unique games instantly — or describe any idea and AI builds it playable in 15 seconds.
+        <p className="hero-sub">
+          Describe it. AI builds a fully playable browser game in&nbsp;
+          <strong style={{ color: '#22d3ee' }}>~8 seconds</strong>.
+          No code. No installs. Publish to the arcade.
         </p>
 
-        <div className="hero-ctas">
-          <a href="#arcade" className="hero-btn-primary">
-            <Play size={16} fill="#fff" /> Play Now — Free
-          </a>
-          <Link href="/create" className="hero-btn-secondary">
-            <Wand2 size={15} /> Build with AI <ChevronRight size={14} />
-          </Link>
+        {/* Genre chips */}
+        <div className="genre-chips">
+          {GENRE_TAGS.map(g => (
+            <span
+              key={g.label}
+              className="genre-chip"
+              style={{ '--chip-color': g.color, '--chip-glow': g.glow } as React.CSSProperties}
+            >
+              {g.label}
+            </span>
+          ))}
         </div>
 
-        <div className="hero-proof">
-          {[
-            { n: '15+', label: 'games' },
-            { n: '15s', label: 'to build' },
-            { n: '∞', label: 'possibilities' },
-          ].map(p => (
-            <div key={p.label} className="proof-item">
-              <span className="proof-n">{p.n}</span>
-              <span className="proof-label">{p.label}</span>
-            </div>
-          ))}
+        {/* CTAs */}
+        <div className="hero-ctas">
+          <CoinInsertBtn href="/create" />
+          <a href="#arcade" className="hero-browse-btn">
+            <Play size={14} fill="currentColor" /> Browse Arcade
+          </a>
+        </div>
+
+        {/* Trust badge */}
+        <div className="trust-badge">
+          <span className="trust-icon">⚡</span>
+          <span>Build time: ~8 seconds</span>
+          <span className="trust-sep">·</span>
+          <span className="trust-icon">🕹️</span>
+          <span>15+ games live</span>
+          <span className="trust-sep">·</span>
+          <span className="trust-icon">🎮</span>
+          <span>Controller ready</span>
         </div>
       </div>
 
-      {/* Right: floating game cards */}
-      <div className="hero-right" aria-hidden>
-        <div className="cards-scene">
-          {featuredGames.slice(0, 4).map((game, i) => {
-            const positions = [
-              { top: '0%',   left: '10%',  width: 160, rotate: '-6deg' },
-              { top: '5%',   right: '5%',  width: 145, rotate: '5deg'  },
-              { top: '52%',  left: '0%',   width: 150, rotate: '4deg'  },
-              { top: '48%',  right: '8%',  width: 140, rotate: '-4deg' },
-            ]
-            const pos = positions[i]
-            return (
-              <FloatingCard
-                key={game.id}
-                game={game}
-                style={{ position: 'absolute', transform: `rotate(${pos.rotate})`, ...pos }}
-                delay={i * 0.4}
-              />
-            )
-          })}
-          {/* Center glow orb */}
-          <div className="scene-orb" />
-          <div className="scene-ring" />
-          <div className="scene-center-icon">🕹️</div>
-        </div>
+      {/* ── RIGHT: CRT terminal ── */}
+      <div className="hero-right" aria-hidden={!mounted}>
+        {mounted && <TerminalWindow />}
+      </div>
+
+      {/* ── MOBILE: vertical wizard steps ── */}
+      <div className="mobile-wizard" aria-label="How it works">
+        {[
+          { step: '01', icon: '✏️', title: 'Describe',  desc: 'Type any game idea in plain English' },
+          { step: '02', icon: '🤖', title: 'AI Builds', desc: 'AI writes code + generates pixel art' },
+          { step: '03', icon: '▶️', title: 'Play',       desc: 'Game launches instantly in your browser' },
+        ].map((s, i) => (
+          <div key={s.step} className="wizard-step">
+            <div className="wz-connector" style={{ opacity: i === 0 ? 0 : 1 }} />
+            <div className="wz-icon">{s.icon}</div>
+            <div className="wz-body">
+              <span className="wz-num">{s.step}</span>
+              <span className="wz-title">{s.title}</span>
+              <span className="wz-desc">{s.desc}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       <style>{`
+        /* ── HERO LAYOUT ── */
         .hero-section {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 60px;
+          gap: 56px;
           align-items: center;
-          padding: 64px 0 48px;
-          min-height: 520px;
+          padding: 60px 0 48px;
         }
+
+        /* ── BADGE ── */
         .hero-badge {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 5px 14px; border-radius: 99px; margin-bottom: 24px;
-          background: rgba(124,58,237,0.12);
-          border: 1px solid rgba(167,139,250,0.25);
-          font-size: 10px; font-weight: 900;
-          color: #c4b5fd; letter-spacing: 0.08em;
+          background: rgba(34,211,238,0.08);
+          border: 1px solid rgba(34,211,238,0.25);
+          font-size: 9px; font-weight: 900;
+          color: #22d3ee; letter-spacing: 0.1em;
+          font-family: 'Press Start 2P', monospace;
         }
         .badge-dot {
           width: 6px; height: 6px; border-radius: 50%;
@@ -144,158 +244,309 @@ export default function HeroSection({ featuredGames }: { featuredGames: Game[] }
           animation: dot-pulse 2s ease-in-out infinite;
           display: inline-block; flex-shrink: 0;
         }
-        @keyframes dot-pulse { 0%,100%{opacity:1;box-shadow:0 0 8px #4ade80} 50%{opacity:0.4;box-shadow:0 0 3px #4ade80} }
-        .hero-title {
-          font-size: clamp(42px, 6vw, 76px);
-          font-weight: 900; line-height: 1.0;
-          letter-spacing: -0.04em; margin-bottom: 20px;
-          color: #fff;
-          display: flex; flex-direction: column; gap: 2px;
-        }
-        .hero-title-line1 {
-          background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .hero-title-line2 { display: block; }
-        .rotating-word {
-          display: inline-block;
-          background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f97316 100%);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          background-clip: text;
-          animation: word-in 0.4s cubic-bezier(0.2, 0, 0, 1) both;
-        }
-        @keyframes word-in {
-          from { opacity: 0; transform: translateY(16px) scale(0.94); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .hero-desc {
-          font-size: 16px; color: rgba(255,255,255,0.5);
-          line-height: 1.65; margin-bottom: 28px; max-width: 440px;
-        }
-        .hero-ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
-        .hero-btn-primary {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 14px 28px; border-radius: 12px;
-          background: linear-gradient(135deg, #7c3aed, #5b21b6);
-          color: #fff; font-weight: 800; font-size: 15px;
-          text-decoration: none; cursor: pointer;
-          box-shadow: 0 0 32px rgba(124,58,237,0.45);
-          transition: all 0.2s; border: none;
-          touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-          min-height: 48px;
-        }
-        .hero-btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 0 48px rgba(124,58,237,0.65);
-          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-        }
-        .hero-btn-secondary {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 13px 22px; border-radius: 12px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.12);
-          color: rgba(255,255,255,0.7); font-weight: 700; font-size: 15px;
-          text-decoration: none; transition: all 0.2s;
-          touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-          min-height: 48px;
-        }
-        .hero-btn-secondary:hover {
-          background: rgba(255,255,255,0.09);
-          border-color: rgba(255,255,255,0.25);
-          color: #fff;
-        }
-        .hero-proof { display: flex; gap: 24px; }
-        .proof-item { display: flex; flex-direction: column; gap: 2px; }
-        .proof-n { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.02em; }
-        .proof-label { font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+        @keyframes dot-pulse { 0%,100%{opacity:1;box-shadow:0 0 8px #4ade80} 50%{opacity:0.3;box-shadow:0 0 2px #4ade80} }
 
-        /* FLOATING CARDS */
-        .hero-right { position: relative; height: 480px; }
-        .cards-scene { position: relative; width: 100%; height: 100%; }
-        .scene-orb {
-          position: absolute; top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          width: 200px; height: 200px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(124,58,237,0.35) 0%, transparent 65%);
-          filter: blur(40px);
-          animation: orb-pulse 4s ease-in-out infinite;
+        /* ── HEADLINE ── */
+        .hero-h1 {
+          display: flex; flex-direction: column; gap: 4px;
+          margin-bottom: 20px;
+          font-family: 'Press Start 2P', monospace;
+          line-height: 1.3;
         }
-        .scene-ring {
-          position: absolute; top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          width: 140px; height: 140px; border-radius: 50%;
-          border: 1px solid rgba(167,139,250,0.2);
-          animation: ring-spin 12s linear infinite;
+        .h1-top {
+          font-size: clamp(22px, 3.5vw, 40px);
+          color: rgba(255,255,255,0.9);
         }
-        .scene-ring::after {
-          content: '';
-          position: absolute; top: -4px; left: 50%;
-          width: 8px; height: 8px; border-radius: 50%;
-          background: #a78bfa;
-          box-shadow: 0 0 12px #a78bfa;
-          transform: translateX(-50%);
+        .h1-bottom {
+          font-size: clamp(22px, 3.5vw, 40px);
+          background: linear-gradient(135deg, #a855f7, #22d3ee);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-shadow: none;
+          filter: drop-shadow(0 0 20px rgba(168,85,247,0.5));
         }
-        @keyframes ring-spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
-        @keyframes orb-pulse { 0%,100%{opacity:0.8;transform:translate(-50%,-50%) scale(1)} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.12)} }
-        .scene-center-icon {
-          position: absolute; top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: 40px; z-index: 2;
-          filter: drop-shadow(0 0 20px rgba(167,139,250,0.6));
-          animation: icon-float 3s ease-in-out infinite;
+
+        /* ── SUB ── */
+        .hero-sub {
+          font-size: 15px; color: rgba(255,255,255,0.52);
+          line-height: 1.7; margin-bottom: 24px; max-width: 420px;
         }
-        @keyframes icon-float { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-8px)} }
-        .float-card {
-          background: #12121e;
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 12px; overflow: hidden;
-          cursor: pointer;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-          animation: card-float 4s ease-in-out infinite;
-          transition: transform 0.2s, box-shadow 0.2s;
-          will-change: transform;
+
+        /* ── GENRE CHIPS ── */
+        .genre-chips {
+          display: flex; flex-wrap: wrap; gap: 8px;
+          margin-bottom: 28px;
         }
-        .float-card:hover {
-          transform: translateY(-8px) scale(1.05) !important;
-          box-shadow: 0 30px 80px rgba(0,0,0,0.8);
-          border-color: rgba(255,255,255,0.22);
-          z-index: 10;
+        .genre-chip {
+          font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+          padding: 5px 12px; border-radius: 4px;
+          border: 1px solid var(--chip-color, #a78bfa);
+          color: var(--chip-color, #a78bfa);
+          background: var(--chip-glow, rgba(167,139,250,0.12));
+          box-shadow: 0 0 8px var(--chip-glow, rgba(167,139,250,0.2));
+          font-family: 'Press Start 2P', monospace;
+          cursor: default;
+          transition: box-shadow 0.15s, transform 0.1s;
         }
-        @keyframes card-float {
-          0%,100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+        .genre-chip:hover {
+          box-shadow: 0 0 18px var(--chip-glow, rgba(167,139,250,0.5));
+          transform: translateY(-1px);
         }
-        .float-cover {
-          width: 100%; aspect-ratio: 16/10;
+
+        /* ── CTAs ── */
+        .hero-ctas {
+          display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;
+        }
+
+        /* COIN INSERT BUTTON */
+        .coin-btn {
           position: relative; overflow: hidden;
-          display: flex; align-items: center; justify-content: center;
+          display: inline-flex; align-items: center; gap: 10px;
+          padding: 14px 24px; border-radius: 6px;
+          background: #050208;
+          border: 2px solid #a855f7;
+          color: #a855f7; font-weight: 900; font-size: 12px;
+          text-decoration: none; cursor: pointer;
+          font-family: 'Press Start 2P', monospace;
+          letter-spacing: 0.04em;
+          box-shadow: 0 0 20px rgba(168,85,247,0.4), inset 0 0 20px rgba(168,85,247,0.05);
+          transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s;
+          min-height: 52px;
         }
-        .float-glow {
-          position: absolute; width: 80px; height: 80px;
-          border-radius: 50%; filter: blur(30px); opacity: 0.5;
-          top: 50%; left: 50%; transform: translate(-50%,-50%);
+        .coin-btn:hover {
+          border-color: #22d3ee;
+          color: #22d3ee;
+          box-shadow: 0 0 32px rgba(34,211,238,0.5), inset 0 0 32px rgba(34,211,238,0.05);
         }
-        .float-emoji { font-size: 32px; position: relative; z-index: 1; }
-        .float-play {
-          position: absolute; bottom: 8px; right: 8px; z-index: 2;
-          width: 28px; height: 28px; border-radius: 50%;
-          background: rgba(255,255,255,0.15);
-          display: flex; align-items: center; justify-content: center;
-          backdrop-filter: blur(4px);
+        .coin-btn:active, .coin-inserting {
+          transform: scale(0.97);
         }
-        .float-info { padding: 8px 10px; }
-        .float-title { font-size: 11px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .float-genre { font-size: 9px; color: rgba(255,255,255,0.3); font-weight: 700; letter-spacing: 0.06em; margin-top: 2px; }
+        .coin-icon {
+          font-size: 18px;
+          animation: coin-spin 3s linear infinite;
+        }
+        @keyframes coin-spin {
+          0%   { transform: rotateY(0deg);   }
+          50%  { transform: rotateY(180deg); }
+          100% { transform: rotateY(360deg); }
+        }
+        .coin-inserting .coin-icon {
+          animation: coin-insert 0.5s ease both;
+        }
+        @keyframes coin-insert {
+          0%   { transform: translateY(0) scale(1);    opacity: 1; }
+          40%  { transform: translateY(6px) scale(0.8); opacity: 0.5; }
+          60%  { transform: translateY(-4px) scale(1.2); opacity: 1; }
+          100% { transform: translateY(0) scale(1);    opacity: 1; }
+        }
+        .coin-glow {
+          position: absolute; inset: -2px;
+          background: linear-gradient(135deg, #a855f7, #22d3ee);
+          border-radius: 6px; z-index: -1; opacity: 0;
+          transition: opacity 0.15s;
+        }
+        .coin-btn:hover .coin-glow { opacity: 0.12; }
 
-        @media (max-width: 900px) {
-          .hero-section { grid-template-columns: 1fr; gap: 24px; padding: 40px 0 32px; min-height: auto; }
-          .hero-right { display: none; }
-          .hero-title { font-size: clamp(36px, 9vw, 56px); }
+        /* Browse btn */
+        .hero-browse-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 13px 20px; border-radius: 6px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.6); font-weight: 700; font-size: 13px;
+          text-decoration: none; transition: all 0.15s;
+          min-height: 52px;
         }
-        @media (max-width: 480px) {
-          .hero-section { padding: 28px 0 24px; }
-          .hero-proof { gap: 16px; }
+        .hero-browse-btn:hover {
+          background: rgba(255,255,255,0.08);
+          border-color: rgba(255,255,255,0.2);
+          color: #fff;
+        }
+
+        /* ── TRUST BADGE ── */
+        .trust-badge {
+          display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+          font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 600;
+        }
+        .trust-icon { font-size: 13px; }
+        .trust-sep { color: rgba(255,255,255,0.15); }
+
+        /* ── CRT TERMINAL ── */
+        .terminal-wrap {
+          display: flex; flex-direction: column; align-items: center;
+        }
+        .crt-bezel {
+          background: linear-gradient(145deg, #1a1428 0%, #0d0b14 100%);
+          border-radius: 20px 20px 8px 8px;
+          padding: 14px 14px 10px;
+          border: 2px solid rgba(168,85,247,0.3);
+          box-shadow:
+            0 0 40px rgba(168,85,247,0.2),
+            0 0 80px rgba(168,85,247,0.08),
+            inset 0 0 20px rgba(0,0,0,0.8);
+          width: 100%; max-width: 500px;
+          position: relative;
+        }
+        .crt-screen {
+          border-radius: 10px;
+          overflow: hidden;
+          border: 2px solid rgba(34,211,238,0.2);
+          position: relative;
+          background: #04020a;
+          box-shadow: inset 0 0 30px rgba(34,211,238,0.06);
+        }
+        .crt-scanlines {
+          position: absolute; inset: 0; z-index: 5; pointer-events: none;
+          background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,0.15) 2px,
+            rgba(0,0,0,0.15) 4px
+          );
+        }
+        .crt-content { position: relative; z-index: 1; }
+
+        /* Terminal bar */
+        .term-bar {
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 12px; background: rgba(255,255,255,0.03);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .term-dots { display: flex; gap: 5px; }
+        .term-dots span {
+          width: 9px; height: 9px; border-radius: 50%; display: block;
+        }
+        .term-title {
+          font-size: 9px; color: rgba(255,255,255,0.25);
+          font-family: monospace; letter-spacing: 0.05em;
+          margin: 0 auto;
+        }
+
+        /* Terminal body */
+        .term-body {
+          padding: 16px 18px; min-height: 180px;
+          font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8;
+        }
+        .term-line { white-space: pre; }
+        .term-cursor {
+          display: inline-block;
+          color: #22d3ee;
+          transition: opacity 0.1s;
+        }
+
+        /* Mini game preview panel */
+        .game-preview {
+          margin: 0 18px 14px;
+          border: 1px solid rgba(34,211,238,0.3);
+          border-radius: 6px;
+          background: rgba(34,211,238,0.04);
+          overflow: hidden;
+          transition: opacity 0.6s ease;
+        }
+        .game-preview-inner {
+          display: flex; align-items: center; gap: 12px;
+          padding: 10px 14px; position: relative;
+        }
+        .preview-emoji { font-size: 24px; }
+        .preview-beams {
+          flex: 1; display: flex; flex-direction: column; gap: 5px;
+        }
+        .beam {
+          height: 6px; border-radius: 3px;
+          background: linear-gradient(90deg, #22d3ee, transparent);
+          animation: beam-scan 1.5s ease-in-out infinite;
+        }
+        .beam1 { width: 70%; }
+        .beam2 { width: 45%; animation-delay: 0.3s; }
+        .beam3 { width: 60%; animation-delay: 0.6s; }
+        @keyframes beam-scan {
+          0%,100% { opacity: 0.4; transform: scaleX(1); }
+          50%      { opacity: 1;   transform: scaleX(1.05); }
+        }
+        .preview-label {
+          font-size: 8px; font-family: 'Press Start 2P', monospace;
+          color: #22d3ee; letter-spacing: 0.06em;
+          animation: preview-blink 1.2s ease-in-out infinite;
+        }
+        @keyframes preview-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* CRT stand + base */
+        .crt-stand {
+          width: 40px; height: 14px; margin: 0 auto;
+          background: linear-gradient(to bottom, #1a1428, #0d0b14);
+          border: 1px solid rgba(168,85,247,0.2);
+          border-top: none;
+        }
+        .crt-base {
+          width: 110px; height: 10px; margin: 0 auto;
+          background: linear-gradient(to bottom, #1a1428, #0d0b14);
+          border: 1px solid rgba(168,85,247,0.2);
+          border-radius: 0 0 6px 6px;
+        }
+
+        /* ── MOBILE WIZARD ── */
+        .mobile-wizard { display: none; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+          .hero-section {
+            grid-template-columns: 1fr;
+            gap: 32px;
+            padding: 40px 0 32px;
+          }
+          .hero-right { display: none; }
+          .hero-h1 { }
+          .h1-top, .h1-bottom { font-size: clamp(18px, 5.5vw, 30px); }
+        }
+
+        @media (max-width: 640px) {
+          .hero-section { padding: 28px 0 20px; gap: 20px; }
+          .hero-badge { font-size: 7px; padding: 4px 10px; }
+          .h1-top, .h1-bottom { font-size: clamp(16px, 5vw, 22px); }
+          .hero-sub { font-size: 13px; }
+          .coin-btn { font-size: 9px; padding: 12px 16px; min-height: 48px; }
+          .genre-chip { font-size: 8px; padding: 4px 9px; }
+
+          /* Show mobile wizard */
+          .mobile-wizard {
+            display: flex; flex-direction: column; gap: 0;
+            margin-top: 24px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px; overflow: hidden;
+          }
+          .wizard-step {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 16px 18px; position: relative;
+          }
+          .wizard-step:not(:last-child) {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+          }
+          .wz-connector {
+            position: absolute; left: 28px; top: 0; bottom: 0;
+            width: 1px; background: rgba(168,85,247,0.2);
+          }
+          .wz-icon {
+            font-size: 20px; flex-shrink: 0; z-index: 1;
+          }
+          .wz-body {
+            display: flex; flex-direction: column; gap: 2px;
+          }
+          .wz-num {
+            font-size: 8px; font-family: 'Press Start 2P', monospace;
+            color: #a855f7; letter-spacing: 0.06em;
+          }
+          .wz-title {
+            font-size: 13px; font-weight: 800; color: #fff;
+          }
+          .wz-desc {
+            font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .coin-icon, .badge-dot, .beam, .preview-label { animation: none; }
         }
       `}</style>
     </section>
