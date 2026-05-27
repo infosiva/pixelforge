@@ -136,7 +136,9 @@ function CoinInsertBtn({ href }: { href: string }) {
   )
 }
 
-export default function HeroSection({ featuredGames }: { featuredGames: Game[] }) {
+import type { ContentOverrides } from '@/lib/content'
+
+export default function HeroSection({ featuredGames, overrides = {} }: { featuredGames: Game[]; overrides?: ContentOverrides }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
@@ -150,14 +152,22 @@ export default function HeroSection({ featuredGames }: { featuredGames: Game[] }
         </div>
 
         <h1 className="hero-h1">
-          <span className="h1-top">Any Idea.</span>
-          <span className="h1-bottom">Instant Game.</span>
+          {overrides.headline ? (
+            <span className="h1-bottom">{overrides.headline}</span>
+          ) : (
+            <>
+              <span className="h1-top">Any Idea.</span>
+              <span className="h1-bottom">Instant Game.</span>
+            </>
+          )}
         </h1>
 
         <p className="hero-sub">
-          Describe it. AI builds a fully playable browser game in&nbsp;
-          <strong style={{ color: '#22d3ee' }}>~8 seconds</strong>.
-          No code. No installs. Publish to the arcade.
+          {overrides.subheadline ?? (
+            <>Describe it. AI builds a fully playable browser game in&nbsp;
+            <strong style={{ color: '#22d3ee' }}>~8 seconds</strong>.
+            No code. No installs. Publish to the arcade.</>
+          )}
         </p>
 
         {/* Genre chips */}

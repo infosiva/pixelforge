@@ -4,6 +4,7 @@ import ArcadeGrid from '@/components/ArcadeGrid'
 import HeroSection from '@/components/HeroSection'
 import { listGames } from '@/lib/db'
 import { CURATED_GAMES } from '@/lib/curatedGames'
+import { getContentOverrides } from '@/lib/content'
 
 // Realistic-sounding recently-built game titles
 const RECENTLY_BUILT = [
@@ -19,6 +20,7 @@ export default async function HomePage() {
   let liveGames: Awaited<ReturnType<typeof listGames>> = []
   try { liveGames = await listGames(12) } catch {}
   const allGames = [...CURATED_GAMES, ...liveGames]
+  const overrides = await getContentOverrides()
 
   return (
     <>
@@ -34,7 +36,7 @@ export default async function HomePage() {
       <div className="pf-wrap">
 
         {/* ── HERO ── */}
-        <HeroSection featuredGames={CURATED_GAMES.slice(0, 4)} />
+        <HeroSection featuredGames={CURATED_GAMES.slice(0, 4)} overrides={overrides} />
 
         {/* ── RECENTLY BUILT FEED ── */}
         <section className="recent-section" aria-label="Recently built games">
