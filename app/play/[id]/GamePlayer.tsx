@@ -20,7 +20,7 @@ const DEMO_GAME_HTML = `<!DOCTYPE html>
 <html>
 <head><style>body{margin:0;background:#0a0a1a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;}</style></head>
 <body>
-<script src="https://arcadeforge.app/phaser.min.js"></script>
+<script src="/phaser.min.js"></script>
 <script>
 const W=800,H=500,SZ=20;
 let snake,dir,food,score,sc,alive=true;
@@ -392,7 +392,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
                   <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Loading game…</p>
                 </div>
               ) : isLocalGame ? (
-                <iframe {...iframeAttrs} src={game.htmlUrl} sandbox="allow-scripts allow-same-origin" />
+                <iframe {...iframeAttrs} src={game.htmlUrl} />
               ) : htmlContent ? (
                 <iframe {...iframeAttrs} srcDoc={htmlContent} />
               ) : (
