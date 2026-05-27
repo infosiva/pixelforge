@@ -1,16 +1,9 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Play, Wand2 } from 'lucide-react'
+import { Play } from 'lucide-react'
 import type { Game } from '@/lib/types'
-
-const GENRE_TAGS = [
-  { label: 'Platformer', color: '#fbbf24', glow: 'rgba(251,191,36,0.35)' },
-  { label: 'Shooter',    color: '#f87171', glow: 'rgba(248,113,113,0.35)' },
-  { label: 'Puzzle',     color: '#34d399', glow: 'rgba(52,211,153,0.35)'  },
-  { label: 'RPG',        color: '#a78bfa', glow: 'rgba(167,139,250,0.35)' },
-  { label: 'Racing',     color: '#22d3ee', glow: 'rgba(34,211,238,0.35)'  },
-]
+import { WordReveal, ScratchUnderline } from '@/components/TextReveal'
 
 const TERMINAL_LINES = [
   { text: '> describe "space dino shooter"',  color: '#22d3ee',  delay: 0    },
@@ -151,14 +144,26 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           FREE · NO ACCOUNT · NO DOWNLOAD
         </div>
 
-        <h1 className="hero-h1">
+        <h1 className="hero-h1" aria-label={overrides.headline ?? 'Any Idea. Instant Game.'}>
           {overrides.headline ? (
-            <span className="h1-bottom">{overrides.headline}</span>
+            <WordReveal text={overrides.headline} className="h1-override" highlightColor="#22d3ee" />
           ) : (
-            <>
-              <span className="h1-top">Any Idea.</span>
-              <span className="h1-bottom">Instant Game.</span>
-            </>
+            <div className="h1-lines">
+              <WordReveal
+                text="Any Idea."
+                stagger={0.09}
+                className="h1-top"
+              />
+              <div className="h1-bottom-wrap">
+                <WordReveal
+                  text="Instant Game."
+                  stagger={0.09}
+                  highlight={[1]}
+                  highlightColor="#22d3ee"
+                  className="h1-bottom"
+                />
+              </div>
+            </div>
           )}
         </h1>
 
@@ -169,19 +174,6 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
             No code. No installs. Publish to the arcade.</>
           )}
         </p>
-
-        {/* Genre chips */}
-        <div className="genre-chips">
-          {GENRE_TAGS.map(g => (
-            <span
-              key={g.label}
-              className="genre-chip"
-              style={{ '--chip-color': g.color, '--chip-glow': g.glow } as React.CSSProperties}
-            >
-              {g.label}
-            </span>
-          ))}
-        </div>
 
         {/* CTAs */}
         <div className="hero-ctas">
@@ -263,9 +255,19 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           font-family: 'Press Start 2P', monospace;
           line-height: 1.3;
         }
+        /* h1 lines wrapper */
+        .h1-lines {
+          display: flex; flex-direction: column; gap: 4px;
+        }
+        /* row 1: white */
         .h1-top {
           font-size: clamp(22px, 3.5vw, 40px);
           color: rgba(255,255,255,0.9);
+          transform-origin: bottom center;
+        }
+        /* row 2: gradient wrap */
+        .h1-bottom-wrap {
+          display: block;
         }
         .h1-bottom {
           font-size: clamp(22px, 3.5vw, 40px);
@@ -274,33 +276,18 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           background-clip: text;
           text-shadow: none;
           filter: drop-shadow(0 0 20px rgba(168,85,247,0.5));
+          transform-origin: bottom center;
+        }
+        /* override headline (Edge Config) */
+        .h1-override {
+          font-size: clamp(22px, 3.5vw, 40px);
+          color: rgba(255,255,255,0.9);
         }
 
         /* ── SUB ── */
         .hero-sub {
           font-size: 15px; color: rgba(255,255,255,0.52);
           line-height: 1.7; margin-bottom: 24px; max-width: 420px;
-        }
-
-        /* ── GENRE CHIPS ── */
-        .genre-chips {
-          display: flex; flex-wrap: wrap; gap: 8px;
-          margin-bottom: 28px;
-        }
-        .genre-chip {
-          font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-          padding: 5px 12px; border-radius: 4px;
-          border: 1px solid var(--chip-color, #a78bfa);
-          color: var(--chip-color, #a78bfa);
-          background: var(--chip-glow, rgba(167,139,250,0.12));
-          box-shadow: 0 0 8px var(--chip-glow, rgba(167,139,250,0.2));
-          font-family: 'Press Start 2P', monospace;
-          cursor: default;
-          transition: box-shadow 0.15s, transform 0.1s;
-        }
-        .genre-chip:hover {
-          box-shadow: 0 0 18px var(--chip-glow, rgba(167,139,250,0.5));
-          transform: translateY(-1px);
         }
 
         /* ── CTAs ── */
