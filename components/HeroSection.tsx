@@ -144,21 +144,21 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           FREE · NO ACCOUNT · NO DOWNLOAD
         </div>
 
-        <h1 className="hero-h1" aria-label={overrides.headline ?? 'Any Idea. Instant Game.'}>
+        <h1 className="hero-h1" aria-label={overrides.headline ?? 'Describe it. Play it. 8 seconds.'}>
           {overrides.headline ? (
             <WordReveal text={overrides.headline} className="h1-override" highlightColor="#22d3ee" />
           ) : (
             <div className="h1-lines">
               <WordReveal
-                text="Any Idea."
+                text="Describe it."
                 stagger={0.09}
                 className="h1-top"
               />
               <div className="h1-bottom-wrap">
                 <WordReveal
-                  text="Instant Game."
+                  text="Play it. 8 seconds."
                   stagger={0.09}
-                  highlight={[1]}
+                  highlight={[2]}
                   highlightColor="#22d3ee"
                   className="h1-bottom"
                 />
@@ -169,9 +169,8 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
 
         <p className="hero-sub">
           {overrides.subheadline ?? (
-            <>Describe it. AI builds a fully playable browser game in&nbsp;
-            <strong style={{ color: '#22d3ee' }}>~8 seconds</strong>.
-            No code. No installs. Publish to the arcade.</>
+            <>Type any game idea — AI writes the code and generates pixel art.
+            No engine. No setup.&nbsp;<strong style={{ color: '#22d3ee' }}>Share a link instantly.</strong></>
           )}
         </p>
 
