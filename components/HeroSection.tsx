@@ -5,6 +5,14 @@ import { Play } from 'lucide-react'
 import type { Game } from '@/lib/types'
 import { WordReveal, ScratchUnderline } from '@/components/TextReveal'
 
+const GENRE_CHIPS = [
+  { id: 'platformer', label: 'Platformer', emoji: '🏃', starter: 'A side-scrolling platformer where you jump over obstacles and collect coins in a neon city' },
+  { id: 'puzzle',     label: 'Puzzle',     emoji: '🧩', starter: 'A sliding block puzzle game with gravity mechanics where you clear a path to the exit' },
+  { id: 'shooter',    label: 'Shooter',    emoji: '🔫', starter: 'A top-down space shooter where you defend Earth from alien waves with power-up weapons' },
+  { id: 'racing',     label: 'Racing',     emoji: '🏎️', starter: 'A pixel art racing game where you drift through neon tracks and dodge rival cars' },
+  { id: 'rpg',        label: 'RPG',        emoji: '⚔️', starter: 'An RPG adventure where a tiny knight explores dungeons, battles skeletons, and finds treasure' },
+] as const
+
 const TERMINAL_LINES = [
   { text: '> describe "space dino shooter"',  color: '#22d3ee',  delay: 0    },
   { text: '  parsing game concept...',         color: '#666a8a',  delay: 600  },
@@ -133,7 +141,12 @@ import type { ContentOverrides } from '@/lib/content'
 
 export default function HeroSection({ featuredGames, overrides = {} }: { featuredGames: Game[]; overrides?: ContentOverrides }) {
   const [mounted, setMounted] = useState(false)
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
   useEffect(() => { setMounted(true) }, [])
+
+  function handleGenreChip(chip: typeof GENRE_CHIPS[number]) {
+    setSelectedGenre(chip.id === selectedGenre ? null : chip.id)
+  }
 
   return (
     <section className="hero-section">
@@ -144,21 +157,21 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           FREE · NO ACCOUNT · NO DOWNLOAD
         </div>
 
-        <h1 className="hero-h1" aria-label={overrides.headline ?? 'Describe it. Play it. 8 seconds.'}>
+        <h1 className="hero-h1" aria-label={overrides.headline ?? 'Describe your game. Play it in 30 seconds. No engine knowledge required.'}>
           {overrides.headline ? (
             <WordReveal text={overrides.headline} className="h1-override" highlightColor="#22d3ee" />
           ) : (
             <div className="h1-lines">
               <WordReveal
-                text="Describe it."
-                stagger={0.09}
+                text="Describe your game."
+                stagger={0.07}
                 className="h1-top"
               />
               <div className="h1-bottom-wrap">
                 <WordReveal
-                  text="Play it. 8 seconds."
-                  stagger={0.09}
-                  highlight={[2]}
+                  text="Play it in 30 seconds."
+                  stagger={0.07}
+                  highlight={[3, 4]}
                   highlightColor="#22d3ee"
                   className="h1-bottom"
                 />
@@ -169,23 +182,50 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
 
         <p className="hero-sub">
           {overrides.subheadline ?? (
-            <>Type any game idea — AI writes the code and generates pixel art.
-            No engine. No setup.&nbsp;<strong style={{ color: '#22d3ee' }}>Share a link instantly.</strong></>
+            <>AI turns your idea into a playable Phaser 3 browser game instantly — platformer, puzzle, shooter, yours to keep.&nbsp;<strong style={{ color: '#22d3ee' }}>No engine knowledge required.</strong></>
           )}
         </p>
 
+        {/* Genre chip selector */}
+        <div className="genre-chips-row" role="group" aria-label="Pick a genre to start">
+          {GENRE_CHIPS.map(chip => (
+            <button
+              key={chip.id}
+              type="button"
+              className={`genre-chip${selectedGenre === chip.id ? ' genre-chip-active' : ''}`}
+              onClick={() => handleGenreChip(chip)}
+              aria-pressed={selectedGenre === chip.id}
+            >
+              <span className="gc-emoji">{chip.emoji}</span>
+              <span className="gc-label">{chip.label}</span>
+            </button>
+          ))}
+        </div>
+
         {/* CTAs */}
         <div className="hero-ctas">
-          <CoinInsertBtn href="/create" />
+          <CoinInsertBtn
+            href={selectedGenre
+              ? `/create?genre=${selectedGenre}&prompt=${encodeURIComponent(GENRE_CHIPS.find(c => c.id === selectedGenre)?.starter ?? '')}`
+              : '/create'}
+          />
           <a href="#arcade" className="hero-browse-btn">
             <Play size={14} fill="currentColor" /> Browse Arcade
+          </a>
+        </div>
+
+        {/* Try demo button */}
+        <div className="try-demo-row">
+          <a href="#arcade" className="try-demo-btn">
+            <span className="try-demo-icon">▶</span>
+            Try a demo game first →
           </a>
         </div>
 
         {/* Trust badge */}
         <div className="trust-badge">
           <span className="trust-icon">⚡</span>
-          <span>Build time: ~8 seconds</span>
+          <span>Build time: ~30 seconds</span>
           <span className="trust-sep">·</span>
           <span className="trust-icon">🕹️</span>
           <span>15+ games live</span>
@@ -357,6 +397,49 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           background: rgba(255,255,255,0.08);
           border-color: rgba(255,255,255,0.2);
           color: #fff;
+        }
+
+        /* ── GENRE CHIPS ── */
+        .genre-chips-row {
+          display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+        }
+        .genre-chip {
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 6px 13px; border-radius: 6px; cursor: pointer;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.55); font-size: 11px; font-weight: 700;
+          transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+          font-family: system-ui, sans-serif;
+          letter-spacing: 0.01em;
+        }
+        .genre-chip:hover {
+          border-color: rgba(168,85,247,0.4);
+          background: rgba(168,85,247,0.08);
+          color: rgba(255,255,255,0.85);
+          transform: translateY(-1px);
+        }
+        .genre-chip:active { transform: scale(0.97); }
+        .genre-chip-active {
+          border-color: #a855f7 !important;
+          background: rgba(168,85,247,0.15) !important;
+          color: #d8b4fe !important;
+          box-shadow: 0 0 12px rgba(168,85,247,0.25);
+        }
+        .gc-emoji { font-size: 14px; line-height: 1; }
+        .gc-label { }
+
+        /* ── TRY DEMO ── */
+        .try-demo-row { margin-bottom: 20px; }
+        .try-demo-btn {
+          display: inline-flex; align-items: center; gap: 7px;
+          font-size: 12px; font-weight: 600;
+          color: rgba(255,255,255,0.4); text-decoration: none;
+          transition: color 0.15s;
+        }
+        .try-demo-btn:hover { color: rgba(255,255,255,0.7); }
+        .try-demo-icon {
+          font-size: 9px; color: #a855f7;
         }
 
         /* ── TRUST BADGE ── */

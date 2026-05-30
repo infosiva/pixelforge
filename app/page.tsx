@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Wand2, Gamepad2 } from 'lucide-react'
 import ArcadeGrid from '@/components/ArcadeGrid'
 import HeroSection from '@/components/HeroSection'
+import StatsStrip from '@/components/StatsStrip'
 import { listGames } from '@/lib/db'
 import { CURATED_GAMES } from '@/lib/curatedGames'
 import { getContentOverrides } from '@/lib/content'
@@ -37,6 +38,9 @@ export default async function HomePage() {
 
         {/* ── HERO ── */}
         <HeroSection featuredGames={CURATED_GAMES.slice(0, 4)} overrides={overrides} />
+
+        {/* ── STATS STRIP ── */}
+        <StatsStrip />
 
         {/* ── RECENTLY BUILT FEED ── */}
         <section className="recent-section" aria-label="Recently built games">
