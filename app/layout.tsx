@@ -52,6 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}} />
       </head>
       <body className="min-h-screen flex flex-col">
+        <div className="aurora aurora-primary" aria-hidden />
+        <div className="aurora aurora-secondary" aria-hidden />
+        <div className="aurora aurora-third" aria-hidden />
+        <div className="grain" aria-hidden />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer siteName="PixelForge AI" tagline="Build & play browser games with AI. No downloads. No code." />
@@ -59,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BackToTop accentColor="#a855f7" />
       <CookieConsent />
         <Script defer data-domain="arcadeforge.app" src="https://plausible.io/js/script.js" strategy="afterInteractive" />
+        <Script defer data-site="arcadeforge.app" src="http://31.97.56.148:3098/t.js" strategy="afterInteractive" />
       </body>
     </html>
   )
