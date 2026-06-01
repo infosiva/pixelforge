@@ -6,11 +6,10 @@ import type { Game } from '@/lib/types'
 import { WordReveal, ScratchUnderline } from '@/components/TextReveal'
 
 const GENRE_CHIPS = [
-  { id: 'platformer', label: 'Platformer', emoji: '🏃', starter: 'A side-scrolling platformer where you jump over obstacles and collect coins in a neon city' },
-  { id: 'puzzle',     label: 'Puzzle',     emoji: '🧩', starter: 'A sliding block puzzle game with gravity mechanics where you clear a path to the exit' },
-  { id: 'shooter',    label: 'Shooter',    emoji: '🔫', starter: 'A top-down space shooter where you defend Earth from alien waves with power-up weapons' },
-  { id: 'racing',     label: 'Racing',     emoji: '🏎️', starter: 'A pixel art racing game where you drift through neon tracks and dodge rival cars' },
-  { id: 'rpg',        label: 'RPG',        emoji: '⚔️', starter: 'An RPG adventure where a tiny knight explores dungeons, battles skeletons, and finds treasure' },
+  { id: 'platformer', label: 'Platformer', emoji: '🏃', color: '#a855f7', starter: 'A side-scrolling platformer where you jump over obstacles and collect coins in a neon city' },
+  { id: 'shooter',    label: 'Shooter',    emoji: '🔫', color: '#22d3ee', starter: 'A top-down space shooter where you defend Earth from alien waves with power-up weapons' },
+  { id: 'puzzle',     label: 'Puzzle',     emoji: '🧩', color: '#4ade80', starter: 'A sliding block puzzle game with gravity mechanics where you clear a path to the exit' },
+  { id: 'rpg',        label: 'RPG',        emoji: '⚔️', color: '#f59e0b', starter: 'An RPG adventure where a tiny knight explores dungeons, battles skeletons, and finds treasure' },
 ] as const
 
 const TERMINAL_LINES = [
@@ -186,13 +185,19 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           )}
         </p>
 
-        {/* Genre chip selector */}
+        {/* Genre chip selector — 4 arcade-style buttons */}
         <div className="genre-chips-row" role="group" aria-label="Pick a genre to start">
           {GENRE_CHIPS.map(chip => (
             <button
               key={chip.id}
               type="button"
               className={`genre-chip${selectedGenre === chip.id ? ' genre-chip-active' : ''}`}
+              style={selectedGenre === chip.id ? {
+                borderColor: chip.color,
+                background: `${chip.color}18`,
+                color: chip.color,
+                boxShadow: `0 0 16px ${chip.color}40`,
+              } : {}}
               onClick={() => handleGenreChip(chip)}
               aria-pressed={selectedGenre === chip.id}
             >
@@ -401,33 +406,32 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
 
         /* ── GENRE CHIPS ── */
         .genre-chips-row {
-          display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+          display: grid; grid-template-columns: repeat(4, 1fr);
+          gap: 8px; margin-bottom: 20px;
         }
         .genre-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 6px 13px; border-radius: 6px; cursor: pointer;
+          display: flex; flex-direction: column; align-items: center; gap: 6px;
+          padding: 12px 8px; border-radius: 10px; cursor: pointer;
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.1);
-          color: rgba(255,255,255,0.55); font-size: 11px; font-weight: 700;
-          transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+          color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 700;
+          transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
           font-family: system-ui, sans-serif;
-          letter-spacing: 0.01em;
+          letter-spacing: 0.02em; text-transform: uppercase;
         }
         .genre-chip:hover {
-          border-color: rgba(168,85,247,0.4);
-          background: rgba(168,85,247,0.08);
-          color: rgba(255,255,255,0.85);
-          transform: translateY(-1px);
+          border-color: rgba(168,85,247,0.5);
+          background: rgba(168,85,247,0.1);
+          color: rgba(255,255,255,0.9);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(168,85,247,0.2);
         }
-        .genre-chip:active { transform: scale(0.97); }
+        .genre-chip:active { transform: scale(0.96) translateY(0); }
         .genre-chip-active {
-          border-color: #a855f7 !important;
-          background: rgba(168,85,247,0.15) !important;
-          color: #d8b4fe !important;
-          box-shadow: 0 0 12px rgba(168,85,247,0.25);
+          transform: translateY(-2px);
         }
-        .gc-emoji { font-size: 14px; line-height: 1; }
-        .gc-label { }
+        .gc-emoji { font-size: 22px; line-height: 1; }
+        .gc-label { font-size: 10px; }
 
         /* ── TRY DEMO ── */
         .try-demo-row { margin-bottom: 20px; }
@@ -585,7 +589,9 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           .h1-top, .h1-bottom { font-size: clamp(16px, 5vw, 22px); }
           .hero-sub { font-size: 13px; }
           .coin-btn { font-size: 9px; padding: 12px 16px; min-height: 48px; }
-          .genre-chip { font-size: 8px; padding: 4px 9px; }
+          .genre-chip { font-size: 8px; padding: 10px 6px; }
+          .gc-emoji { font-size: 18px; }
+          .genre-chips-row { gap: 6px; }
 
           /* Show mobile wizard */
           .mobile-wizard {
