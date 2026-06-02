@@ -274,64 +274,57 @@ export default function HeroSection({ featuredGames, overrides = {} }: { feature
           padding: 60px 0 48px;
         }
 
-        /* ── BADGE ── */
+        /* ── BADGE — liquid-glass Bloom AI style ── */
         .hero-badge {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 5px 14px; border-radius: 99px; margin-bottom: 24px;
-          background: rgba(34,211,238,0.08);
-          border: 1px solid rgba(34,211,238,0.25);
+          padding: 6px 16px; border-radius: 99px; margin-bottom: 28px;
+          background: rgba(255,255,255,0.04);
+          backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255,255,255,0.09);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
           font-size: 9px; font-weight: 900;
-          color: #22d3ee; letter-spacing: 0.1em;
+          color: rgba(232,121,249,0.85); letter-spacing: 0.12em;
           font-family: 'Press Start 2P', monospace;
         }
         .badge-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #4ade80; box-shadow: 0 0 8px #4ade80;
+          width: 7px; height: 7px; border-radius: 50%;
+          background: #4ade80; box-shadow: 0 0 10px #4ade80;
           animation: dot-pulse 2s ease-in-out infinite;
           display: inline-block; flex-shrink: 0;
         }
-        @keyframes dot-pulse { 0%,100%{opacity:1;box-shadow:0 0 8px #4ade80} 50%{opacity:0.3;box-shadow:0 0 2px #4ade80} }
+        @keyframes dot-pulse { 0%,100%{opacity:1;box-shadow:0 0 10px #4ade80} 50%{opacity:0.3;box-shadow:0 0 3px #4ade80} }
 
         /* ── HEADLINE ── */
         .hero-h1 {
           display: flex; flex-direction: column; gap: 4px;
           margin-bottom: 20px;
           font-family: 'Press Start 2P', monospace;
-          line-height: 1.3;
+          line-height: 1.25;
         }
-        /* h1 lines wrapper */
-        .h1-lines {
-          display: flex; flex-direction: column; gap: 4px;
-        }
-        /* row 1: white */
+        .h1-lines { display: flex; flex-direction: column; gap: 4px; }
         .h1-top {
-          font-size: clamp(22px, 3.5vw, 40px);
-          color: rgba(255,255,255,0.9);
+          font-size: clamp(22px, 3.8vw, 44px);
+          color: rgba(255,255,255,0.95);
           transform-origin: bottom center;
         }
-        /* row 2: gradient wrap */
-        .h1-bottom-wrap {
-          display: block;
-        }
+        .h1-bottom-wrap { display: block; }
         .h1-bottom {
-          font-size: clamp(22px, 3.5vw, 40px);
-          background: linear-gradient(135deg, #a855f7, #22d3ee);
+          font-size: clamp(22px, 3.8vw, 44px);
+          background: linear-gradient(135deg, #c084fc 0%, #e879f9 40%, #22d3ee 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          background-clip: text;
-          text-shadow: none;
-          filter: drop-shadow(0 0 20px rgba(168,85,247,0.5));
+          background-clip: text; text-shadow: none;
+          filter: drop-shadow(0 0 28px rgba(232,121,249,0.55));
           transform-origin: bottom center;
         }
-        /* override headline (Edge Config) */
         .h1-override {
-          font-size: clamp(22px, 3.5vw, 40px);
-          color: rgba(255,255,255,0.9);
+          font-size: clamp(22px, 3.8vw, 44px);
+          color: rgba(255,255,255,0.95);
         }
 
         /* ── SUB ── */
         .hero-sub {
-          font-size: 15px; color: rgba(255,255,255,0.52);
-          line-height: 1.7; margin-bottom: 24px; max-width: 420px;
+          font-size: 15px; color: rgba(255,255,255,0.48);
+          line-height: 1.75; margin-bottom: 24px; max-width: 420px;
         }
 
         /* ── CTAs ── */
