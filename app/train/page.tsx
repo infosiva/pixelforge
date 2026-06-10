@@ -5,11 +5,11 @@ import Navbar from '@/components/Navbar'
 import { Swords, Target, Zap, BookOpen, ChevronDown } from 'lucide-react'
 
 const GAMES = [
-  { id: 'fortnite',      label: 'Fortnite',       emoji: '⚡', genre: 'Battle Royale' },
-  { id: 'valorant',      label: 'Valorant',        emoji: '🎯', genre: 'Tactical FPS' },
-  { id: 'roblox',        label: 'Roblox',          emoji: '🟧', genre: 'Platform / UGC' },
-  { id: 'brawl-stars',   label: 'Brawl Stars',     emoji: '💥', genre: 'Brawler' },
-  { id: 'marvel-rivals', label: 'Marvel Rivals',   emoji: '🦸', genre: 'Hero Shooter' },
+  { id: 'fortnite',      label: 'Fortnite',         emoji: '⚡', genre: 'Battle Royale' },
+  { id: 'valorant',      label: 'Valorant',          emoji: '🎯', genre: 'Tactical FPS' },
+  { id: 'marvel-rivals', label: 'Marvel Rivals',     emoji: '🦸', genre: 'Hero Shooter' },
+  { id: 'cod-mobile',    label: 'COD Mobile',        emoji: '🔫', genre: 'FPS / Battle Royale' },
+  { id: 'minecraft',     label: 'Minecraft',         emoji: '⛏️', genre: 'Survival / PvP' },
 ]
 
 const LEVELS = [
@@ -19,11 +19,11 @@ const LEVELS = [
 ]
 
 const FOCUS_AREAS: Record<string, string[]> = {
-  fortnite:      ['Building & Editing', 'Aim & Tracking', 'Zone Rotation', 'Loot Priority', 'End Game'],
-  valorant:      ['Aim & Crosshair Placement', 'Agent Abilities', 'Map Control', 'Economy', 'Comms & Callouts'],
-  roblox:        ['Game Mechanics', 'Scripting Basics', 'Building in Studio', 'Monetisation'],
-  'brawl-stars': ['Brawler Selection', 'Gem Grab Strategy', 'Showdown Tips', 'Heist & Siege', 'Trophy Pushing'],
+  fortnite:        ['Building & Editing', 'Aim & Tracking', 'Zone Rotation', 'Loot Priority', 'End Game'],
+  valorant:        ['Aim & Crosshair Placement', 'Agent Abilities', 'Map Control', 'Economy', 'Comms & Callouts'],
   'marvel-rivals': ['Hero Mechanics', 'Team Composition', 'Positioning', 'Ability Combos', 'Counter-Picking'],
+  'cod-mobile':    ['Gunsmith & Loadout', 'Movement & Strafing', 'BR Drop & Rotation', 'Ranked Push', 'Scorestreaks'],
+  minecraft:       ['PvP Combat', 'Speedrunning', 'Resource Management', 'Redstone Logic', 'Crystal PvP'],
 }
 
 interface Tip {

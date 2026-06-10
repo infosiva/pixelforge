@@ -3,9 +3,8 @@ import Groq from 'groq-sdk'
 
 export const runtime = 'nodejs'
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-
 export async function POST(req: NextRequest) {
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
   try {
     const { game, level, focus } = await req.json()
     if (!game || !level) return NextResponse.json({ error: 'game and level required' }, { status: 400 })
