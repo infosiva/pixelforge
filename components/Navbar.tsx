@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Gamepad2, Wand2, Trophy, User, LogOut } from 'lucide-react'
+import { Gamepad2, Wand2, Trophy, User, LogOut, BookOpen } from 'lucide-react'
 import { getUser, clearAuth, type AuthUser } from '@/lib/auth'
 import AuthModal from './AuthModal'
 
@@ -62,6 +62,15 @@ export default function Navbar() {
               textDecoration: 'none', transition: 'all 0.15s',
             }}>
               <Wand2 size={14} /> Create
+            </Link>
+            <Link href="/train" style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 12px', borderRadius: 6, fontSize: 14, fontWeight: 600,
+              color: path === '/train' ? '#fff' : 'rgba(255,255,255,0.55)',
+              background: path === '/train' ? 'rgba(255,255,255,0.08)' : 'transparent',
+              textDecoration: 'none', transition: 'all 0.15s',
+            }}>
+              <BookOpen size={14} /> Train
             </Link>
           </div>
 

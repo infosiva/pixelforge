@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server'
+import Groq from 'groq-sdk'
+
+export const runtime = 'nodejs'
+
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+
+export async function POST(req: NextRequest) {
+  try {
+    const { game, level, focus } = await req.json()
+    if (!game || !level) return NextResponse.json({ error: 'game and level required' }, { status: 400 })
+
+    const focusNote = focus ? ` Focus specifically on: ${focus}.` : ''
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      max_tokens: 800,
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a top esports coach. Return JSON only. No markdown.',
+        },
+        {
+          role: 'user',
+          content: `Give 4 actionable skill tips for a ${level} player in ${game}.${focusNote}
+
+Return JSON: { "tips": [ { "title": "short title", "body": "2-3 sentence explanation with specific mechanics", "pro": "one pro-player habit to copy" } ] }`,
+        },
+      ],
+    })
+
+    const raw = completion.choices[0]?.message?.content ?? '{}'
+    const data = JSON.parse(raw)
+    return NextResponse.json({ tips: data.tips ?? [] })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Error'
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
+}
