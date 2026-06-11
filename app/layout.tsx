@@ -4,9 +4,12 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import ChatBot from '@/components/ChatBot'
 import { PIXELFORGE_CHAT_CONFIG } from '@/lib/chatbot-configs'
-import CookieConsent from "../components/CookieConsent";
-import Footer from "../components/Footer";
+import CookieConsent from "../components/CookieConsent"
+import Footer from "../components/Footer"
 import BackToTop from '@/components/BackToTop'
+import FloatingChatWrapper from '@/components/FloatingChatWrapper'
+import FeedbackWidget from '@/components/FeedbackWidget'
+import { loadSiteTheme, buildThemeStyleTag, isWidgetHidden } from '@/lib/theme-loader'
 
 export const metadata: Metadata = {
   title: { default: 'PixelForge AI — Build & Play AI Games', template: '%s | PixelForge AI' },
@@ -22,10 +25,19 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://arcadeforge.app'),
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await loadSiteTheme('pixelforge')
+
+  const themeCSS = buildThemeStyleTag(theme, {
+    background: '#050208',
+    primary: '#a855f7',
+    secondary: '#22d3ee',
+  })
+
   return (
     <html lang="en">
       <head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebSite', name: 'PixelForge AI', url: 'https://arcadeforge.app', description: 'Describe a game in plain English. AI builds it in seconds. Play it instantly.' }) }} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -36,6 +48,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             --arcade-neon: #22d3ee;
             --arcade-yellow: #fbbf24;
             --bg: #050208;
+            --theme-primary: #a855f7;
+            --theme-secondary: #22d3ee;
+            --theme-base: #050208;
+            --background: #050208;
           }
           html, body { background: #050208 !important; }
           h1, h2, .arcade-title { font-family: 'Press Start 2P', monospace !important; letter-spacing: 0.02em; }
@@ -49,6 +65,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             pointer-events: none;
             z-index: 100;
           }
+          ${themeCSS}
+          /* Map theme-primary back to arcade vars so existing components still work */
+          :root {
+            --arcade-primary: var(--theme-primary, #a855f7);
+          }
         `}} />
       </head>
       <body className="min-h-screen flex flex-col">
@@ -59,11 +80,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer siteName="PixelForge AI" tagline="Build & play browser games with AI. No downloads. No code." />
-        <ChatBot config={PIXELFORGE_CHAT_CONFIG} />
-        <BackToTop accentColor="#a855f7" />
-      <CookieConsent />
+        {!isWidgetHidden(theme, 'chatbot') && <ChatBot config={PIXELFORGE_CHAT_CONFIG} />}
+        {!isWidgetHidden(theme, 'backToTop') && <BackToTop accentColor="#a855f7" />}
+        {!isWidgetHidden(theme, 'cookieConsent') && <CookieConsent />}
+        <FloatingChatWrapper />
         <Script defer data-domain="arcadeforge.app" src="https://plausible.io/js/script.js" strategy="afterInteractive" />
         <Script defer data-site="arcadeforge.app" src="http://31.97.56.148:3098/t.js" strategy="afterInteractive" />
+        <FeedbackWidget siteName="PixelForge" accentColor="#0ea5e9" position="left" />
       </body>
     </html>
   )
