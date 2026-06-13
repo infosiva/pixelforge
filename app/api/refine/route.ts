@@ -5,6 +5,7 @@
  * stores the new HTML, updates the game record, returns { htmlUrl }.
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { AI_LIMITER } from '@/lib/rateLimit'
 import { callAI } from '@/lib/ai'
 import { storeGameHtml, getGame, saveGame } from '@/lib/db'
 import type { AgeRating } from '@/lib/types'
@@ -20,6 +21,7 @@ function validateGameHtml(html: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = AI_LIMITER.check(req); if (limited) return limited
   const body = await req.json().catch(() => ({})) as {
     gameId?: string
     htmlUrl?: string

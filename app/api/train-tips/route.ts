@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { AI_LIMITER } from '@/lib/rateLimit'
 import Groq from 'groq-sdk'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
+  const limited = AI_LIMITER.check(req); if (limited) return limited
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
   try {
     const { game, level, focus } = await req.json()
