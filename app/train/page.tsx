@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Navbar from '@/components/Navbar'
 import { Swords, Target, Zap, BookOpen, ChevronDown } from 'lucide-react'
 
 const GAMES = [
@@ -67,7 +66,6 @@ export default function TrainPage() {
 
   return (
     <div style={{ minHeight: '100dvh', background: '#050208' }}>
-      <Navbar />
 
       {/* Aurora blobs */}
       <div style={{ position: 'fixed', top: '5%', left: '5%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
