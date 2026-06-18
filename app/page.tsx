@@ -107,6 +107,7 @@ export default async function HomePage() {
               <Link href="/create" className="build-cta-btn">
                 <Wand2 size={16} /> Start Building Free
               </Link>
+              <p className="text-xs opacity-60 mt-2">Have a promo code? <a href="#promo" className="underline">Apply here</a></p>
             </div>
             <div className="build-cta-visual">
               <div className="code-window">
