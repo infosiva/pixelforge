@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: #0e0e16;
+  --accent:     #7c3aed;
+  --accent-2:   #6d28d9;
+  --foreground: #e4e4f0;
+  --border:     rgba(124,58,237,0.18);
+}
+
 @layer base {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
