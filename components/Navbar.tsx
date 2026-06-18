@@ -33,13 +33,13 @@ export default function Navbar() {
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 16, textDecoration: 'none' }}>
             <div style={{
               width: 32, height: 32, borderRadius: 8,
-              background: 'linear-gradient(135deg,#7c3aed,#ec4899)',
+              background: 'linear-gradient(135deg,#6d28d9,#7c3aed)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Gamepad2 size={16} color="#fff" />
             </div>
             <span style={{ fontWeight: 900, fontSize: 16, color: '#fff', letterSpacing: '-0.02em' }}>
-              Pixel<span style={{ color: '#a78bfa' }}>Forge</span>
+              Pixel<span style={{ color: '#7c3aed' }}>Forge</span>
             </span>
           </Link>
 
