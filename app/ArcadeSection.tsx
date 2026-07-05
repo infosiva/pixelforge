@@ -157,12 +157,12 @@ export default function ArcadeSection({ games }: { games: Game[] }) {
           display: inline-flex; align-items: center; gap: 5px;
           padding: 6px 13px; border-radius: 20px; white-space: nowrap;
           font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          color: rgba(255,255,255,0.5);
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: rgba(255,255,255,0.75);
           transition: all 0.15s; font-family: inherit;
         }
-        .chip:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+        .chip:hover { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.95); }
         .chip.active {
           background: rgba(124,58,237,0.25);
           border-color: rgba(167,139,250,0.45);
