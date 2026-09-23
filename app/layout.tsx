@@ -10,6 +10,7 @@ import BackToTop from '@/components/BackToTop'
 import FloatingChatWrapper from '@/components/FloatingChatWrapper'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import { loadSiteTheme, buildThemeStyleTag, isWidgetHidden } from '@/lib/theme-loader'
+import { getSiteFlags } from '@/lib/flags'
 
 export const metadata: Metadata = {
   title: { default: 'PixelForge AI — Build & Play AI Games', template: '%s | PixelForge AI' },
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = await loadSiteTheme('pixelforge')
+  const flags = await getSiteFlags('arcadeforge')
 
   const themeCSS = buildThemeStyleTag(theme, {
     background: '#050208',
@@ -90,7 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {!isWidgetHidden(theme, 'chatbot') && <ChatBot config={PIXELFORGE_CHAT_CONFIG} />}
         {!isWidgetHidden(theme, 'backToTop') && <BackToTop accentColor="#a855f7" />}
         {!isWidgetHidden(theme, 'cookieConsent') && <CookieConsent />}
-        <FloatingChatWrapper />
+        {flags.chatbot && <FloatingChatWrapper />}
         <Script defer data-domain="arcadeforge.app" src="https://plausible.io/js/script.js" strategy="afterInteractive" />
         <Script defer data-site="arcadeforge.app" src="http://31.97.56.148:3098/t.js" strategy="afterInteractive" />
         <FeedbackWidget siteName="PixelForge" accentColor="#0ea5e9" position="left" />
