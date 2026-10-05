@@ -12,6 +12,7 @@ import FeedbackWidget from '@/components/FeedbackWidget'
 import { loadSiteTheme, buildThemeStyleTag, isWidgetHidden } from '@/lib/theme-loader'
 import { getSiteFlags } from '@/lib/flags'
 
+import { MotionProvider } from "@infosiva/shared-ui/modern";
 export const metadata: Metadata = {
   title: { default: 'PixelForge AI — Build & Play AI Games', template: '%s | PixelForge AI' },
   description: 'Describe a game in plain English. AI builds it in seconds. Play it instantly. No code, no downloads.',
@@ -87,7 +88,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="aurora aurora-third" aria-hidden />
         <div className="grain" aria-hidden />
         <Navbar />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1"><MotionProvider>{children}</MotionProvider></main>
         <Footer siteName="PixelForge AI" tagline="Build & play browser games with AI. No downloads. No code." />
         {!isWidgetHidden(theme, 'chatbot') && <ChatBot config={PIXELFORGE_CHAT_CONFIG} />}
         {!isWidgetHidden(theme, 'backToTop') && <BackToTop accentColor="#a855f7" />}

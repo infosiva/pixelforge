@@ -7,6 +7,17 @@ import { listGames } from '@/lib/db'
 import { CURATED_GAMES } from '@/lib/curatedGames'
 import { getContentOverrides } from '@/lib/content'
 
+import type { Game, GameGenre } from '@/lib/types'
+import { MagneticButton } from "@infosiva/shared-ui/modern";
+
+const GENRE_ROWS: { label: string; value: GameGenre; icon: string }[] = [
+  { label: 'Shooters',     value: 'shooter',     icon: '🚀' },
+  { label: 'Platformers',  value: 'platformer',  icon: '🏃' },
+  { label: 'Puzzles',      value: 'puzzle',      icon: '🧩' },
+  { label: 'RPGs',         value: 'rpg',         icon: '⚔️' },
+  { label: 'Educational',  value: 'educational', icon: '🎓' },
+  { label: 'Arcade',       value: 'arcade',      icon: '👾' },
+]
 // Realistic-sounding recently-built game titles
 const RECENTLY_BUILT = [
   { title: 'Neon Snake 3000',    genre: 'Arcade',      time: '12s', emoji: '🐍' },
@@ -104,8 +115,10 @@ export default async function HomePage() {
                   <span key={ex} className="example-pill">{ex}</span>
                 ))}
               </div>
-              <Link href="/create" className="build-cta-btn">
-                <Wand2 size={16} /> Start Building Free
+              <Link href="/create" style={{ display: 'inline-block' }}>
+                <MagneticButton className="build-cta-btn" style={{ background: undefined, color: undefined }}>
+                  <Wand2 size={16} /> Start Building Free
+                </MagneticButton>
               </Link>
               <p className="text-xs opacity-60 mt-2">Have a promo code? <a href="#promo" className="underline">Apply here</a></p>
             </div>
