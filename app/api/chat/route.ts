@@ -1,3 +1,4 @@
+import { sanitizeUserInput } from '@/lib/guard'
 import { NextRequest } from 'next/server'
 import { CHAT_LIMITER } from '@/lib/rateLimit'
 
@@ -53,6 +54,8 @@ export async function POST(req: NextRequest) {
   let msgs: Msg[] = []
   try {
     const body = await req.json()
+    if (body && Array.isArray(body.messages)) for (const m of body.messages) if (m && typeof m.content === 'string') m.content = sanitizeUserInput(m.content).text
+    if (body && typeof body.message === 'string') body.message = sanitizeUserInput(body.message).text
     msgs = (Array.isArray(body?.messages) ? body.messages : [])
       .filter((m: Msg) => (m?.role === 'user' || m?.role === 'assistant') && typeof m.content === 'string')
       .slice(-12)
