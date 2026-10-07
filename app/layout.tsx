@@ -1,16 +1,16 @@
 import Script from 'next/script'
 import type { Metadata } from 'next'
 import './globals.css'
+import { AnimatedBg } from '@/components/AnimatedBg'
+import ConsentBanner from '@/components/ConsentBanner'
 import Navbar from '@/components/Navbar'
 import ChatBot from '@/components/ChatBot'
 import { PIXELFORGE_CHAT_CONFIG } from '@/lib/chatbot-configs'
 import CookieConsent from "../components/CookieConsent"
 import Footer from "../components/Footer"
 import BackToTop from '@/components/BackToTop'
-import FloatingChatWrapper from '@/components/FloatingChatWrapper'
 import FeedbackWidget from '@/components/FeedbackWidget'
-import { loadSiteTheme, buildThemeStyleTag, isWidgetHidden } from '@/lib/theme-loader'
-import { getSiteFlags } from '@/lib/flags'
+import { loadSiteTheme, buildThemeStyleTag, buildGa4Snippet, isValidGa4Id, isWidgetHidden } from '@/lib/theme-loader'
 
 import { MotionProvider } from "@infosiva/shared-ui/modern";
 export const metadata: Metadata = {
@@ -29,16 +29,17 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = await loadSiteTheme('pixelforge')
-  const flags = await getSiteFlags('arcadeforge')
 
   const themeCSS = buildThemeStyleTag(theme, {
-    background: '#050208',
-    primary: '#a855f7',
+    background: '#070a08',
+    primary: '#a3e635',
     secondary: '#22d3ee',
   })
 
+  const ga4 = buildGa4Snippet(theme)
+
   return (
-    <html lang="en">
+    <html lang="en" data-layout={theme?.layout?.archetype ?? 'media-gallery'}>
       <head>
         <meta name="google-adsense-account" content="ca-pub-4237294630161176" />
         <Script
@@ -53,50 +54,39 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
         <style dangerouslySetInnerHTML={{ __html: `
-          :root {
-            --arcade-primary: #a855f7;
-            --arcade-neon: #22d3ee;
-            --arcade-yellow: #fbbf24;
-            --bg: #050208;
-            --theme-primary: #a855f7;
-            --theme-secondary: #22d3ee;
-            --theme-base: #050208;
-            --background: #050208;
-          }
-          html, body { background: #050208 !important; }
-          h1, h2, .arcade-title { font-family: 'Press Start 2P', monospace !important; letter-spacing: 0.02em; }
-          .game-title, nav .logo { font-family: 'Rajdhani', sans-serif !important; font-weight: 700; }
-          /* Neon scan-line texture */
-          body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 2px);
-            pointer-events: none;
-            z-index: 100;
-          }
+          :root { --arcade-primary: #a3e635; --arcade-neon: #22d3ee; --bg: #070a08; --background: #070a08; }
+          h1, h2, .arcade-title { font-family: 'Press Start 2P', monospace; letter-spacing: 0.02em; }
+          .game-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
           ${themeCSS}
-          /* Map theme-primary back to arcade vars so existing components still work */
-          :root {
-            --arcade-primary: var(--theme-primary, #a855f7);
-          }
+          :root { --arcade-primary: var(--theme-primary, #a3e635); }
         `}} />
-      </head>
+      
+</head>
       <body className="min-h-screen flex flex-col">
-        <div className="aurora aurora-primary" aria-hidden />
-        <div className="aurora aurora-secondary" aria-hidden />
-        <div className="aurora aurora-third" aria-hidden />
+        {theme?.layout?.bgAnimation ? (
+          theme.layout.bgAnimation !== "none" && <AnimatedBg theme={theme} />
+        ) : (
+          <>
+            <div className="aurora aurora-primary" aria-hidden />
+            <div className="aurora aurora-secondary" aria-hidden />
+            <div className="aurora aurora-third" aria-hidden />
+          </>
+        )}
         <div className="grain" aria-hidden />
         <Navbar />
         <main className="flex-1"><MotionProvider>{children}</MotionProvider></main>
         <Footer siteName="PixelForge AI" tagline="Build & play browser games with AI. No downloads. No code." />
         {!isWidgetHidden(theme, 'chatbot') && <ChatBot config={PIXELFORGE_CHAT_CONFIG} />}
-        {!isWidgetHidden(theme, 'backToTop') && <BackToTop accentColor="#a855f7" />}
+        {!isWidgetHidden(theme, 'backToTop') && <BackToTop accentColor="#a3e635" />}
         {!isWidgetHidden(theme, 'cookieConsent') && <CookieConsent />}
-        {flags.chatbot && <FloatingChatWrapper />}
-        <Script defer data-domain="arcadeforge.app" src="https://plausible.io/js/script.js" strategy="afterInteractive" />
-        <Script defer data-site="arcadeforge.app" src="http://31.97.56.148:3098/t.js" strategy="afterInteractive" />
-        <FeedbackWidget siteName="PixelForge" accentColor="#0ea5e9" position="left" />
+        {isValidGa4Id(theme?.analytics?.ga4Id) && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${theme?.analytics?.ga4Id}`} strategy="afterInteractive" />
+            <Script id="ga4-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: ga4 }} />
+          </>
+        )}
+        <FeedbackWidget siteName="PixelForge" accentColor="#a3e635" position="left" />
+        <ConsentBanner />
       </body>
     </html>
   )

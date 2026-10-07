@@ -13,7 +13,7 @@ const GENRES: Array<{ id: GameGenre; label: string; emoji: string; desc: string;
   { id: 'platformer', label: 'Platformer',  emoji: '🏃', desc: 'Jump & run adventures',     color: '#fbbf24', bg: '#2d2000' },
   { id: 'shooter',    label: 'Shooter',     emoji: '🚀', desc: 'Blast enemies away',         color: '#f87171', bg: '#2d1010' },
   { id: 'puzzle',     label: 'Puzzle',      emoji: '🧩', desc: 'Brain-teasing challenges',   color: '#34d399', bg: '#002d20' },
-  { id: 'rpg',        label: 'RPG',         emoji: '⚔️', desc: 'Story & exploration',        color: '#a78bfa', bg: '#150a30' },
+  { id: 'rpg',        label: 'RPG',         emoji: '⚔️', desc: 'Story & exploration',        color: '#d9f99d', bg: '#150a30' },
   { id: 'other',      label: 'Surprise',    emoji: '🎲', desc: 'Let AI decide the genre',    color: '#60a5fa', bg: '#0a1030' },
 ]
 
@@ -96,6 +96,11 @@ export default function CreatePage() {
     if (pendingBuild) { setPendingBuild(false); runBuild() }
   }
 
+  function handleGuestCodeSuccess() {
+    setAuthOpen(false)
+    if (pendingBuild) { setPendingBuild(false); runBuild() }
+  }
+
   /* ── Loading ── */
   if (loading) return (
     <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
@@ -117,7 +122,7 @@ export default function CreatePage() {
           <div style={{
             height: '100%', borderRadius: 2, transition: 'width 1s ease',
             width: `${((step + 1) / STEPS.length) * 100}%`,
-            background: `linear-gradient(90deg,#7c3aed,${activeGenre.color})`,
+            background: `linear-gradient(90deg,#a3e635,${activeGenre.color})`,
           }} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -152,15 +157,15 @@ export default function CreatePage() {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '5px 14px', borderRadius: 99, marginBottom: 20,
-            background: 'rgba(124,58,237,0.18)', border: '1px solid rgba(167,139,250,0.35)',
-            fontSize: 12, fontWeight: 700, color: '#c4b5fd',
+            background: 'rgba(163,230,53,0.18)', border: '1px solid rgba(163,230,53,0.35)',
+            fontSize: 12, fontWeight: 700, color: '#d9f99d',
           }}>
             ✨ AI Game Builder
           </div>
           <h1 style={{ fontSize: 'clamp(28px,5vw,48px)', fontWeight: 900, color: '#fff', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 10 }}>
             What game shall<br />we build?
           </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)' }}>Describe any idea — AI does the rest in ~15 seconds</p>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)' }}>Describe any idea — AI writes a playable game from it</p>
         </div>
 
         {/* Genre grid */}
@@ -224,7 +229,7 @@ export default function CreatePage() {
               outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
               transition: 'border-color 0.15s',
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#7c3aed' }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#a3e635' }}
             onBlur={e => { e.currentTarget.style.borderColor = error ? '#ef4444' : 'rgba(255,255,255,0.15)' }}
           />
           {error && <p style={{ fontSize: 12, color: '#f87171', marginTop: 6 }}>⚠ {error}</p>}
@@ -260,7 +265,7 @@ export default function CreatePage() {
             width: '100%', height: 56, borderRadius: 12, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             fontSize: 16, fontWeight: 900, color: '#fff', fontFamily: 'inherit',
-            background: `linear-gradient(135deg,#7c3aed,${activeGenre.color})`,
+            background: `linear-gradient(135deg,#a3e635,${activeGenre.color})`,
             boxShadow: `0 0 32px ${activeGenre.color}35, 0 4px 16px rgba(0,0,0,0.4)`,
             transition: 'all 0.15s',
           }}
@@ -271,54 +276,12 @@ export default function CreatePage() {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 14, fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>
-          <Zap size={12} /> ~15 seconds · Published to arcade · Free forever
-        </div>
-
-        {/* ── Unlock showcase ── */}
-        <div style={{ marginTop: 48, borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(124,58,237,0.25)', background: 'linear-gradient(135deg,rgba(124,58,237,0.08) 0%,rgba(236,72,153,0.04) 100%)' }}>
-          <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <p style={{ fontSize: 10, fontWeight: 900, color: '#a78bfa', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>Register Free — Unlock Everything</p>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: 0 }}>See the difference one account makes</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0 }} className="unlock-grid">
-            {[
-              { tier: 'Guest', icon: '👤', color: '#6b7280', games: '1 build', features: ['Basic AI model','Simple game logic','No saves','No remix'] },
-              { tier: 'Free Account', icon: '⭐', color: '#a78bfa', games: 'Unlimited builds', features: ['Faster AI model','Multi-level games','Save & share','Remix others'] },
-              { tier: 'Arcade Pro', icon: '👑', color: '#fbbf24', games: 'Priority queue', features: ['Top-tier AI model','Bosses & power-ups','Custom thumbnail','Leaderboards'] },
-            ].map((t, i) => (
-              <div key={t.tier} style={{
-                padding: '20px 18px',
-                borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-                background: i === 1 ? 'rgba(124,58,237,0.1)' : 'transparent',
-                position: 'relative',
-              }}>
-                {i === 1 && (
-                  <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(90deg,#7c3aed,#ec4899)', borderRadius: '0 0 8px 8px', padding: '2px 12px', fontSize: 9, fontWeight: 900, color: '#fff', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>MOST POPULAR</div>
-                )}
-                <div style={{ fontSize: 26, marginBottom: 8 }}>{t.icon}</div>
-                <p style={{ fontSize: 13, fontWeight: 900, color: t.color, marginBottom: 3 }}>{t.tier}</p>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 12 }}>{t.games}</p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {t.features.map(f => (
-                    <li key={f} style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ color: t.color, fontSize: 9 }}>●</span> {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: '14px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>No credit card · Takes 10 seconds · Magic link login</span>
-          </div>
+          <Zap size={12} /> Free to use · Published to the arcade
         </div>
 
         <style>{`
           @media (max-width: 640px) {
             .genre-grid { grid-template-columns: repeat(3,1fr) !important; }
-            .unlock-grid { grid-template-columns: 1fr !important; }
-            .unlock-grid > div { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.06); }
-            .unlock-grid > div:last-child { border-bottom: none; }
           }
         `}</style>
 
@@ -328,6 +291,7 @@ export default function CreatePage() {
         open={authOpen}
         onClose={() => { setAuthOpen(false); setPendingBuild(false) }}
         onSuccess={handleAuthSuccess}
+        onGuestSuccess={handleGuestCodeSuccess}
         reason="create"
       />
     </div>

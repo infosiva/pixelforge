@@ -121,12 +121,83 @@ export async function verifyMagicCode(email: string, code: string): Promise<{ ok
 }
 
 // ── Guest limit check ────────────────────────────────────────────────────────
-// Gate: guests can play freely, but creating a game requires registration after N free builds
+// Gate: guests can play freely, but creating a game requires registration after N free builds.
+// Signup requirement disabled for now (NEXT_PUBLIC_SIGNUP_GATE=off) — toggle via Vercel env, no redeploy needed.
+// Guest code bypasses the gate entirely regardless of the flag — for inviting testers.
 
 export const FREE_BUILDS_LIMIT = 1  // 1 free build, then must register
 
+// ── Guest/admin code (hub-generated, per-project, 24h TTL) ──────────────────
+// Codes are minted from the hub dashboard via auth-api /admin-code/generate.
+// Redeeming stores the privilege state (tier + aiLimit) in localStorage, keyed
+// by fingerprint so /admin-code/status can restore it across sessions.
+
+export interface GuestPrivilege {
+  active: boolean
+  tier?: string
+  aiLimit?: number | null
+  expiresAt?: number
+}
+
+const GUEST_PRIV_KEY = 'pf_guest_priv'
+
+export async function redeemGuestCode(code: string): Promise<{ ok: boolean; error?: string }> {
+  const fp = getFingerprint()
+  try {
+    const res = await fetch(`${AUTH_API}/admin-code/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code.trim(), project: PRODUCT, fingerprint: fp }),
+    })
+    const data = await res.json()
+    if (!res.ok || !data.valid) return { ok: false, error: data.error ?? 'Invalid code' }
+    const priv: GuestPrivilege = { active: true, tier: data.tier, aiLimit: data.aiLimit, expiresAt: data.expiresAt }
+    if (typeof window !== 'undefined') localStorage.setItem(GUEST_PRIV_KEY, JSON.stringify(priv))
+    return { ok: true }
+  } catch {
+    return { ok: false, error: 'Network error — check connection' }
+  }
+}
+
+export function getCachedGuestPrivilege(): GuestPrivilege {
+  if (typeof window === 'undefined') return { active: false }
+  try {
+    const raw = localStorage.getItem(GUEST_PRIV_KEY)
+    if (!raw) return { active: false }
+    const priv: GuestPrivilege = JSON.parse(raw)
+    if (!priv.expiresAt || priv.expiresAt < Date.now()) return { active: false }
+    return priv
+  } catch {
+    return { active: false }
+  }
+}
+
+// Re-checks with auth-api (call on app load) — restores/expires privilege across devices/sessions.
+export async function refreshGuestPrivilege(): Promise<GuestPrivilege> {
+  const fp = getFingerprint()
+  try {
+    const res = await fetch(`${AUTH_API}/admin-code/status?project=${PRODUCT}&fingerprint=${fp}`)
+    const data = await res.json()
+    const priv: GuestPrivilege = data.active
+      ? { active: true, tier: data.tier, aiLimit: data.aiLimit, expiresAt: data.expiresAt }
+      : { active: false }
+    if (typeof window !== 'undefined') {
+      if (priv.active) localStorage.setItem(GUEST_PRIV_KEY, JSON.stringify(priv))
+      else localStorage.removeItem(GUEST_PRIV_KEY)
+    }
+    return priv
+  } catch {
+    return getCachedGuestPrivilege()
+  }
+}
+
+export function hasGuestAccess(): boolean {
+  return getCachedGuestPrivilege().active
+}
+
 export async function checkBuildGate(): Promise<'allowed' | 'requires_auth'> {
-  if (isLoggedIn()) return 'allowed'
+  if (process.env.NEXT_PUBLIC_SIGNUP_GATE === 'off') return 'allowed'
+  if (isLoggedIn() || hasGuestAccess()) return 'allowed'
   const count = await getUsageCount('game_created')
   return count >= FREE_BUILDS_LIMIT ? 'requires_auth' : 'allowed'
 }

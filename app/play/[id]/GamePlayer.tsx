@@ -31,7 +31,7 @@ function create(){
   dir={x:1,y:0};
   food={x:Math.floor(Math.random()*38)+1,y:Math.floor(Math.random()*23)+1};
   score=0;
-  sc=this.add.text(10,10,'Score: 0',{color:'#a78bfa',fontSize:'18px',fontFamily:'monospace'});
+  sc=this.add.text(10,10,'Score: 0',{color:'#d9f99d',fontSize:'18px',fontFamily:'monospace'});
   this.add.text(W/2,10,'SNAKE — Arrow keys to move',{color:'rgba(255,255,255,0.3)',fontSize:'13px',fontFamily:'monospace'}).setOrigin(0.5,0);
   this.input.keyboard.on('keydown',({key})=>{
     if(key==='ArrowUp'&&dir.y===0)dir={x:0,y:-1};
@@ -72,16 +72,6 @@ function draw(){
 function update(){}
 </script>
 </body></html>`
-
-// Per-game controls metadata
-const CURATED_CONTROLS: Record<string, { key: string; action: string }[]> = {
-  'builtin-snake':       [{ key: 'Arrows', action: 'Steer' }, { key: 'WASD', action: 'Steer' }, { key: '🎮 D-pad', action: 'Steer' }, { key: 'R', action: 'Restart' }],
-  'builtin-asteroids':   [{ key: '← →', action: 'Rotate' }, { key: '↑', action: 'Thrust' }, { key: 'Space', action: 'Shoot' }, { key: '🎮 L-stick+A', action: 'Play' }, { key: 'R', action: 'Restart' }],
-  'builtin-jumper':      [{ key: '← →', action: 'Move' }, { key: 'Space / ↑', action: 'Jump x2' }, { key: '🎮 Stick+A', action: 'Move & jump' }, { key: 'R', action: 'Restart' }],
-  'builtin-breakout':    [{ key: '← →', action: 'Move paddle' }, { key: 'Mouse', action: 'Move paddle' }, { key: '🎮 L-stick', action: 'Move' }, { key: 'R', action: 'Restart' }],
-  'builtin-math-rush':   [{ key: '1–4', action: 'Pick answer' }, { key: 'Tap', action: 'Pick answer (mobile)' }, { key: 'R', action: 'Restart' }],
-  'builtin-space-battle':[{ key: '← →', action: 'Move ship' }, { key: 'Z / Space', action: 'Fire' }, { key: '🎮 Stick+A', action: 'Play' }, { key: 'R', action: 'Restart' }],
-}
 
 // Which key each touch button fires
 // action button = Space (fire/jump), R button restarts
@@ -236,7 +226,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
     style: { border: 'none', position: 'absolute' as const, inset: 0, width: '100%', height: '100%', display: 'block' } as React.CSSProperties,
   }
 
-  const controls = CURATED_CONTROLS[game.id] ?? []
+  const controls = game.controls ?? []
   const genreEmoji: Record<string, string> = { arcade: '👾', shooter: '🚀', platformer: '🏃', puzzle: '🧩', rpg: '⚔️', other: '🎮' }
 
   // Touch D-pad button style
@@ -302,7 +292,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
       </div>
       {/* Action buttons right side */}
       <div style={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-        {actionBtn('🔫', 'Space', 'rgba(124,58,237,0.85)')}
+        {actionBtn('🔫', 'Space', 'rgba(163,230,53,0.85)')}
         {actionBtn('R', 'r', 'rgba(220,38,38,0.75)')}
       </div>
     </div>
@@ -313,9 +303,9 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
 
       {/* New game banner */}
       {isNew && (
-        <div style={{ margin: '12px 0 16px', padding: '14px 20px', borderRadius: 12, textAlign: 'center', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
+        <div style={{ margin: '12px 0 16px', padding: '14px 20px', borderRadius: 12, textAlign: 'center', background: 'rgba(163,230,53,0.15)', border: '1px solid rgba(163,230,53,0.3)' }}>
           <span style={{ fontSize: 20 }}>🎉</span>
-          <span style={{ fontWeight: 700, color: '#c4b5fd', marginLeft: 10 }}>Your game was published! Share it with friends.</span>
+          <span style={{ fontWeight: 700, color: '#d9f99d', marginLeft: 10 }}>Your game was published! Share it with friends.</span>
         </div>
       )}
 
@@ -331,7 +321,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
             <button onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: copied ? '#4ade80' : 'rgba(255,255,255,0.5)' }}>
               {copied ? <Check size={13} /> : <Share2 size={13} />} <span className="hide-xs">{copied ? 'Copied' : 'Share'}</span>
             </button>
-            <button onClick={handleRemix} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}>
+            <button onClick={handleRemix} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(163,230,53,0.12)', border: '1px solid rgba(163,230,53,0.3)', color: '#d9f99d' }}>
               <RotateCcw size={13} /> <span className="hide-xs">Remix</span>
             </button>
             {htmlContent && !demoMode && (
@@ -339,7 +329,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
                 <Download size={13} /> <span className="hide-xs">Export</span>
               </button>
             )}
-            <Link href="/create" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: '#fff' }}>
+            <Link href="/create" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#a3e635,#65a30d)', color: '#0a0c08' }}>
               <Wand2 size={13} /> <span className="hide-xs">Build</span>
             </Link>
           </div>
@@ -355,8 +345,8 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
           <div style={{
             position: 'relative', borderRadius: 16, overflow: 'hidden',
             background: '#04040d',
-            border: '1px solid rgba(124,58,237,0.3)',
-            boxShadow: '0 0 60px rgba(124,58,237,0.15), 0 0 0 1px rgba(255,255,255,0.04)',
+            border: '1px solid rgba(163,230,53,0.3)',
+            boxShadow: '0 0 60px rgba(163,230,53,0.15), 0 0 0 1px rgba(255,255,255,0.04)',
             ...(fullscreen ? { position: 'fixed' as const, inset: 0, zIndex: 50, borderRadius: 0 } : {}),
           }}>
             {/* Top bar inside viewport */}
@@ -386,7 +376,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
             <div style={{ width: '100%', aspectRatio: isMobile ? '4/3' : '16/10', position: 'relative', background: '#04040d' }}>
               {loading ? (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg,#7c3aed,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="animate-pulse-glow">
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg,#a3e635,#22d3ee)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="animate-pulse-glow">
                     <Play size={24} color="#fff" fill="#fff" />
                   </div>
                   <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Loading game…</p>
@@ -410,15 +400,15 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
           </div>
 
           {/* ── Controls / How to play bar ── */}
-          <div style={{ marginTop: 10, borderRadius: 14, background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.2)', overflow: 'hidden' }}>
+          <div style={{ marginTop: 10, borderRadius: 14, background: 'rgba(163,230,53,0.07)', border: '1px solid rgba(163,230,53,0.2)', overflow: 'hidden' }}>
             {/* Header row — always visible */}
             <div
               onClick={() => setShowControls(c => !c)}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Info size={14} color="#a78bfa" />
-                <span style={{ fontSize: 12, fontWeight: 800, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.07em' }}>How to Play</span>
+                <Info size={14} color="#d9f99d" />
+                <span style={{ fontSize: 12, fontWeight: 800, color: '#d9f99d', textTransform: 'uppercase', letterSpacing: '0.07em' }}>How to Play</span>
                 {!gamepadConnected && !isMobile && (
                   <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginLeft: 4 }}>· plug in controller for gamepad support</span>
                 )}
@@ -434,11 +424,11 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
               <div style={{ padding: '0 16px 14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 {/* Mobile notice */}
                 {isMobile && (
-                  <div style={{ marginTop: 12, marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{ marginTop: 12, marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: 'rgba(163,230,53,0.12)', border: '1px solid rgba(163,230,53,0.25)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     <span style={{ fontSize: 18 }}>👆</span>
                     <div>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#c4b5fd', marginBottom: 3 }}>Touch Controls Active</p>
-                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>Use the <strong style={{ color: '#fff' }}>D-pad</strong> (bottom-left) to move and <strong style={{ color: '#7c3aed' }}>🔫</strong> (bottom-right) to fire/jump. <strong style={{ color: '#ef4444' }}>R</strong> restarts the game.</p>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#d9f99d', marginBottom: 3 }}>Touch Controls Active</p>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>Use the <strong style={{ color: '#fff' }}>D-pad</strong> (bottom-left) to move and <strong style={{ color: '#a3e635' }}>🔫</strong> (bottom-right) to fire/jump. <strong style={{ color: '#ef4444' }}>R</strong> restarts the game.</p>
                     </div>
                   </div>
                 )}
@@ -457,28 +447,15 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
                   </div>
                 )}
 
-                {/* Keyboard controls */}
-                <p style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Keyboard</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px' }}>
-                  {controls.length > 0 ? controls.map(({ key, action }) => (
-                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-                      <span style={{ padding: '2px 8px', borderRadius: 5, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{key}</span>
-                      <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{action}</span>
+                {/* How to play */}
+                <p style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>How to play</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {controls.map((line, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13 }}>
+                      <span style={{ color: 'rgba(255,255,255,0.35)' }}>•</span>
+                      <span style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{line}</span>
                     </div>
-                  )) : (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px' }}>
-                      {[
-                        { key: 'Arrows / WASD', action: 'Move' },
-                        { key: 'Space', action: 'Jump / Fire' },
-                        { key: 'R', action: 'Restart' },
-                      ].map(({ key, action }) => (
-                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ padding: '2px 8px', borderRadius: 5, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{key}</span>
-                          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{action}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
             )}
@@ -486,15 +463,15 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
 
           {/* ── Refine panel ── */}
           {!demoMode && htmlContent && (
-            <div style={{ marginTop: 10, borderRadius: 14, background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.25)', overflow: 'hidden' }}>
+            <div style={{ marginTop: 10, borderRadius: 14, background: 'rgba(163,230,53,0.07)', border: '1px solid rgba(163,230,53,0.25)', overflow: 'hidden' }}>
               {/* Header toggle */}
               <div
                 onClick={() => setRefineOpen(o => !o)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Pencil size={14} color="#a78bfa" />
-                  <span style={{ fontSize: 12, fontWeight: 800, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Refine Game</span>
+                  <Pencil size={14} color="#d9f99d" />
+                  <span style={{ fontSize: 12, fontWeight: 800, color: '#d9f99d', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Refine Game</span>
                   <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginLeft: 4 }}>· ask AI to modify this game</span>
                 </div>
                 <ChevronRight size={14} color="rgba(255,255,255,0.3)" style={{ transform: refineOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
@@ -508,7 +485,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
                       <button
                         key={chip}
                         onClick={() => setRefineText(chip)}
-                        style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: refineText === chip ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.06)', border: `1px solid ${refineText === chip ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.1)'}`, color: refineText === chip ? '#c4b5fd' : 'rgba(255,255,255,0.45)', transition: 'all 160ms cubic-bezier(0.23,1,0.32,1)' }}
+                        style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: refineText === chip ? 'rgba(163,230,53,0.3)' : 'rgba(255,255,255,0.06)', border: `1px solid ${refineText === chip ? 'rgba(163,230,53,0.5)' : 'rgba(255,255,255,0.1)'}`, color: refineText === chip ? '#d9f99d' : 'rgba(255,255,255,0.45)', transition: 'all 160ms cubic-bezier(0.23,1,0.32,1)' }}
                       >{chip}</button>
                     ))}
                   </div>
@@ -526,7 +503,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
                     <button
                       onClick={handleRefine}
                       disabled={refining || !refineText.trim()}
-                      style={{ padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: refining || !refineText.trim() ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 6, opacity: refining || !refineText.trim() ? 0.5 : 1, transition: 'opacity 160ms, transform 160ms cubic-bezier(0.23,1,0.32,1)', flexShrink: 0 }}
+                      style={{ padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: refining || !refineText.trim() ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg,#a3e635,#65a30d)', color: '#0a0c08', border: 'none', display: 'flex', alignItems: 'center', gap: 6, opacity: refining || !refineText.trim() ? 0.5 : 1, transition: 'opacity 160ms, transform 160ms cubic-bezier(0.23,1,0.32,1)', flexShrink: 0 }}
                       className="btn-press"
                     >
                       {refining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
@@ -556,7 +533,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
                   </Link>
                 ))}
               </div>
-              <Link href="/" style={{ display: 'block', textAlign: 'center', marginTop: 10, fontSize: 13, color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>Browse all →</Link>
+              <Link href="/" style={{ display: 'block', textAlign: 'center', marginTop: 10, fontSize: 13, color: '#d9f99d', textDecoration: 'none', fontWeight: 600 }}>Browse all →</Link>
             </div>
           )}
         </div>
@@ -582,10 +559,10 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
           </div>
 
           {/* Build CTA */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(124,58,237,0.05))', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 14, padding: 18 }}>
+          <div style={{ background: 'linear-gradient(135deg,rgba(163,230,53,0.15),rgba(163,230,53,0.05))', border: '1px solid rgba(163,230,53,0.3)', borderRadius: 14, padding: 18 }}>
             <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 6 }}>🤖 Build your own</p>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 14 }}>Describe any game idea — AI builds it in 15 seconds.</p>
-            <Link href="/create" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px', borderRadius: 9, background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: '#fff', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 14 }}>Describe any game idea — AI builds it for you.</p>
+            <Link href="/create" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px', borderRadius: 9, background: 'linear-gradient(135deg,#a3e635,#65a30d)', color: '#0a0c08', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
               <Wand2 size={14} /> Start Building
             </Link>
           </div>
@@ -606,7 +583,7 @@ export default function GamePlayer({ game, moreGames, isNew, demoMode }: Props) 
                   </Link>
                 ))}
               </div>
-              <Link href="/" style={{ display: 'block', textAlign: 'center', marginTop: 12, fontSize: 13, color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>Browse all →</Link>
+              <Link href="/" style={{ display: 'block', textAlign: 'center', marginTop: 12, fontSize: 13, color: '#d9f99d', textDecoration: 'none', fontWeight: 600 }}>Browse all →</Link>
             </div>
           )}
         </div>}

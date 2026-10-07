@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
 export interface ChatBotConfig {
-  systemPrompt: string
+  systemPrompt?: string
   welcomeMessage: string
   accentColor?: string
   botName?: string
@@ -15,7 +15,7 @@ interface Message {
 }
 
 export default function ChatBot({ config }: { config: ChatBotConfig }) {
-  const accent = config.accentColor ?? '#7c3aed'
+  const accent = config.accentColor ?? '#a3e635'
   const botName = config.botName ?? 'AI Assistant'
 
   const [open, setOpen] = useState(false)
@@ -49,10 +49,14 @@ export default function ChatBot({ config }: { config: ChatBotConfig }) {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: next, systemPrompt: config.systemPrompt }),
+        body: JSON.stringify({ messages: next }),
       })
 
-      if (!res.ok || !res.body) throw new Error('Stream failed')
+      if (!res.ok || !res.body) {
+        const msg = (await res.text().catch(() => '')) || 'Something went wrong. Please try again.'
+        setMessages(prev => [...prev, { role: 'assistant', content: msg }])
+        return
+      }
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -73,12 +77,12 @@ export default function ChatBot({ config }: { config: ChatBotConfig }) {
     } catch {
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: '⚠️ Something went wrong. Please try again.' },
+        { role: 'assistant', content: 'Something went wrong. Please try again.' },
       ])
     } finally {
       setLoading(false)
     }
-  }, [input, loading, messages, config.systemPrompt])
+  }, [input, loading, messages])
 
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
@@ -102,11 +106,11 @@ export default function ChatBot({ config }: { config: ChatBotConfig }) {
         onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
       >
         {open ? (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a0c08" strokeWidth="2.5" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0c08" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         )}
@@ -136,13 +140,13 @@ export default function ChatBot({ config }: { config: ChatBotConfig }) {
           <div style={{
             padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)',
             display: 'flex', alignItems: 'center', gap: 10,
-            background: 'rgba(124,58,237,0.12)',
+            background: 'rgba(163,230,53,0.10)',
           }}>
             <div style={{
               width: 32, height: 32, borderRadius: '50%',
               background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14,
-            }}>🤖</div>
+              fontSize: 11, fontWeight: 800, color: '#0a0c08',
+            }}>PF</div>
             <div>
               <div style={{ color: '#fff', fontWeight: 600, fontSize: 14, lineHeight: 1.2 }}>{botName}</div>
               <div style={{ color: '#22c55e', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -164,7 +168,7 @@ export default function ChatBot({ config }: { config: ChatBotConfig }) {
                 <div style={{
                   maxWidth: '82%', padding: '9px 13px', borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   background: m.role === 'user' ? accent : 'rgba(255,255,255,0.07)',
-                  color: '#f0f0f0', fontSize: 13.5, lineHeight: 1.5,
+                  color: m.role === 'user' ? '#0a0c08' : '#f0f0f0', fontSize: 13.5, lineHeight: 1.5,
                   wordBreak: 'break-word', whiteSpace: 'pre-wrap',
                 }}>
                   {m.content}
@@ -232,7 +236,7 @@ export default function ChatBot({ config }: { config: ChatBotConfig }) {
                 flexShrink: 0,
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a0c08" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13"/>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
               </svg>

@@ -68,7 +68,7 @@ export default function TrainPage() {
     <div style={{ minHeight: '100dvh', background: '#050208' }}>
 
       {/* Aurora blobs */}
-      <div style={{ position: 'fixed', top: '5%', left: '5%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'fixed', top: '5%', left: '5%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(163,230,53,0.07) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: '10%', right: '5%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(236,72,153,0.05) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '56px 24px', position: 'relative', zIndex: 1 }}>
@@ -77,15 +77,15 @@ export default function TrainPage() {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '6px 14px', borderRadius: 99,
-            background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.25)',
-            fontSize: 12, fontWeight: 700, color: '#a855f7', letterSpacing: '0.08em',
+            background: 'rgba(163,230,53,0.1)', border: '1px solid rgba(163,230,53,0.25)',
+            fontSize: 12, fontWeight: 700, color: '#a3e635', letterSpacing: '0.08em',
             textTransform: 'uppercase', marginBottom: 20,
           }}>
             <BookOpen size={12} /> Game Training Lab
           </div>
           <h1 style={{ fontSize: 'clamp(32px,5vw,54px)', fontWeight: 900, letterSpacing: '-1.5px', color: '#fff', lineHeight: 1.1, marginBottom: 14 }}>
             Level up your<br />
-            <span style={{ color: '#a855f7' }}>game IQ.</span>
+            <span style={{ color: '#a3e635' }}>game IQ.</span>
           </h1>
           <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.45)', maxWidth: 460 }}>
             Get Groq-powered skill tips tailored to your game, level, and focus area.
@@ -104,8 +104,8 @@ export default function TrainPage() {
                 onClick={() => { setGame(g.id); setFocus('') }}
                 style={{
                   padding: '12px 18px', borderRadius: 10, border: '1px solid',
-                  borderColor: game === g.id ? '#a855f7' : 'rgba(255,255,255,0.08)',
-                  background: game === g.id ? 'rgba(168,85,247,0.12)' : 'rgba(255,255,255,0.03)',
+                  borderColor: game === g.id ? '#a3e635' : 'rgba(255,255,255,0.08)',
+                  background: game === g.id ? 'rgba(163,230,53,0.12)' : 'rgba(255,255,255,0.03)',
                   color: game === g.id ? '#d8b4fe' : 'rgba(255,255,255,0.6)',
                   fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 8,
@@ -134,8 +134,8 @@ export default function TrainPage() {
                 onClick={() => setLevel(l.id)}
                 style={{
                   padding: '12px 20px', borderRadius: 10, border: '1px solid',
-                  borderColor: level === l.id ? '#a855f7' : 'rgba(255,255,255,0.08)',
-                  background: level === l.id ? 'rgba(168,85,247,0.12)' : 'rgba(255,255,255,0.03)',
+                  borderColor: level === l.id ? '#a3e635' : 'rgba(255,255,255,0.08)',
+                  background: level === l.id ? 'rgba(163,230,53,0.12)' : 'rgba(255,255,255,0.03)',
                   color: level === l.id ? '#d8b4fe' : 'rgba(255,255,255,0.6)',
                   fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'left',
                   transition: 'all 0.15s cubic-bezier(0.23,1,0.32,1)',
@@ -160,8 +160,8 @@ export default function TrainPage() {
                 onChange={e => setFocus(e.target.value)}
                 style={{
                   appearance: 'none', padding: '12px 40px 12px 16px', borderRadius: 10,
-                  border: '1px solid rgba(168,85,247,0.25)',
-                  background: 'rgba(168,85,247,0.06)', color: focus ? '#d8b4fe' : 'rgba(255,255,255,0.4)',
+                  border: '1px solid rgba(163,230,53,0.25)',
+                  background: 'rgba(163,230,53,0.06)', color: focus ? '#d8b4fe' : 'rgba(255,255,255,0.4)',
                   fontSize: 14, cursor: 'pointer', outline: 'none', minWidth: 240,
                   fontFamily: 'inherit',
                 }}
@@ -169,7 +169,7 @@ export default function TrainPage() {
                 <option value="">Any area</option>
                 {focusOptions.map(f => <option key={f} value={f} style={{ background: '#1a1a2e' }}>{f}</option>)}
               </select>
-              <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#a855f7', pointerEvents: 'none' }} />
+              <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#a3e635', pointerEvents: 'none' }} />
             </div>
           </section>
         )}
@@ -180,12 +180,12 @@ export default function TrainPage() {
           disabled={!game || !level || state === 'loading'}
           style={{
             padding: '14px 36px', borderRadius: 10, border: 'none',
-            background: game && level ? 'linear-gradient(135deg,#7c3aed,#a855f7)' : 'rgba(255,255,255,0.07)',
+            background: game && level ? 'linear-gradient(135deg,#a3e635,#a3e635)' : 'rgba(255,255,255,0.07)',
             color: game && level ? '#fff' : 'rgba(255,255,255,0.25)',
             fontSize: 15, fontWeight: 800, cursor: game && level ? 'pointer' : 'not-allowed',
             transition: 'all 0.15s cubic-bezier(0.23,1,0.32,1)',
             display: 'flex', alignItems: 'center', gap: 8,
-            boxShadow: game && level ? '0 4px 20px rgba(168,85,247,0.35)' : 'none',
+            boxShadow: game && level ? '0 4px 20px rgba(163,230,53,0.35)' : 'none',
           }}
         >
           <Zap size={16} />
@@ -215,15 +215,15 @@ export default function TrainPage() {
                   key={i}
                   style={{
                     padding: '22px 24px', borderRadius: 14,
-                    background: 'rgba(168,85,247,0.05)', border: '1px solid rgba(168,85,247,0.15)',
+                    background: 'rgba(163,230,53,0.05)', border: '1px solid rgba(163,230,53,0.15)',
                     animation: `tip-fade 0.3s cubic-bezier(0.23,1,0.32,1) ${i * 0.06}s both`,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                     <div style={{
                       minWidth: 28, height: 28, borderRadius: 8,
-                      background: 'rgba(168,85,247,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, fontWeight: 900, color: '#a855f7', marginTop: 2,
+                      background: 'rgba(163,230,53,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 12, fontWeight: 900, color: '#a3e635', marginTop: 2,
                     }}>
                       {i + 1}
                     </div>
@@ -233,10 +233,10 @@ export default function TrainPage() {
                       <div style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6,
                         padding: '5px 10px', borderRadius: 6,
-                        background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.2)',
+                        background: 'rgba(163,230,53,0.12)', border: '1px solid rgba(163,230,53,0.2)',
                       }}>
-                        <Target size={11} style={{ color: '#a855f7' }} />
-                        <span style={{ fontSize: 12, color: '#c4b5fd', fontWeight: 600 }}>{tip.pro}</span>
+                        <Target size={11} style={{ color: '#a3e635' }} />
+                        <span style={{ fontSize: 12, color: '#d9f99d', fontWeight: 600 }}>{tip.pro}</span>
                       </div>
                     </div>
                   </div>
@@ -247,8 +247,8 @@ export default function TrainPage() {
               onClick={() => { setState('idle'); setTips([]) }}
               style={{
                 marginTop: 24, padding: '10px 20px', borderRadius: 8,
-                background: 'transparent', border: '1px solid rgba(168,85,247,0.3)',
-                color: '#a855f7', fontSize: 14, cursor: 'pointer', transition: 'all 0.15s',
+                background: 'transparent', border: '1px solid rgba(163,230,53,0.3)',
+                color: '#a3e635', fontSize: 14, cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
               Try another →

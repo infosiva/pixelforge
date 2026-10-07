@@ -11,7 +11,7 @@ const GENRE: Record<string, {
 }> = {
   arcade: {
     bg: 'linear-gradient(145deg,#2d0a1e 0%,#0f0009 100%)',
-    glow: '#f472b6', glow2: '#ec4899', emoji: '👾', label: 'ARCADE',
+    glow: '#f472b6', glow2: '#22d3ee', emoji: '👾', label: 'ARCADE',
     pattern: 'radial-gradient(circle at 20% 80%, rgba(244,114,182,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(236,72,153,0.1) 0%, transparent 50%)',
     accent: '#f472b6',
   },
@@ -35,9 +35,9 @@ const GENRE: Record<string, {
   },
   rpg: {
     bg: 'linear-gradient(145deg,#100520 0%,#040010 100%)',
-    glow: '#a78bfa', glow2: '#7c3aed', emoji: '⚔️', label: 'RPG',
-    pattern: 'radial-gradient(circle at 40% 30%, rgba(167,139,250,0.2) 0%, transparent 55%), radial-gradient(circle at 80% 70%, rgba(124,58,237,0.1) 0%, transparent 50%)',
-    accent: '#a78bfa',
+    glow: '#d9f99d', glow2: '#a3e635', emoji: '⚔️', label: 'RPG',
+    pattern: 'radial-gradient(circle at 40% 30%, rgba(167,139,250,0.2) 0%, transparent 55%), radial-gradient(circle at 80% 70%, rgba(163,230,53,0.1) 0%, transparent 50%)',
+    accent: '#d9f99d',
   },
   educational: {
     bg: 'linear-gradient(145deg,#001c10 0%,#000a04 100%)',
@@ -197,7 +197,7 @@ export default function GameCard({ game, featured }: { game: Game; featured?: bo
           box-shadow:
             0 28px 72px rgba(0,0,0,0.7),
             0 0 0 1px rgba(255,255,255,0.12),
-            0 0 48px var(--glow, rgba(124,58,237,0.2));
+            0 0 48px var(--glow, rgba(163,230,53,0.2));
           border-color: rgba(255,255,255,0.15);
         }
         .gc-featured { border-radius: 20px; }

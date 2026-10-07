@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { X, Mail, Loader2, CheckCircle2, Gamepad2, Wand2, Sparkles } from 'lucide-react'
-import { sendMagicCode, verifyMagicCode, getUser, type AuthUser } from '@/lib/auth'
+import { sendMagicCode, verifyMagicCode, redeemGuestCode, getUser, type AuthUser } from '@/lib/auth'
 
 interface Props {
   open: boolean
   onClose: () => void
   onSuccess: (user: AuthUser) => void
+  /** Called when a guest/admin code was redeemed instead of signing in */
+  onGuestSuccess?: () => void
   /** Why the modal was triggered — shown as context */
   reason?: 'create' | 'save' | 'leaderboard' | 'general'
 }
@@ -19,22 +21,24 @@ const REASONS = {
   general:     { title: 'Welcome to PixelForge', sub: 'Sign in for free to create games, save progress and more.' },
 }
 
-type Step = 'email' | 'code' | 'done'
+type Step = 'email' | 'code' | 'done' | 'guestcode'
 
-export default function AuthModal({ open, onClose, onSuccess, reason = 'general' }: Props) {
+export default function AuthModal({ open, onClose, onSuccess, onGuestSuccess, reason = 'general' }: Props) {
   const [step, setStep]       = useState<Step>('email')
   const [email, setEmail]     = useState('')
   const [code, setCode]       = useState('')
+  const [guestCode, setGuestCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
   const [countdown, setCountdown] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const codeRef  = useRef<HTMLInputElement>(null)
+  const guestCodeRef = useRef<HTMLInputElement>(null)
 
   // Reset on open
   useEffect(() => {
     if (open) {
-      setStep('email'); setEmail(''); setCode(''); setError(''); setLoading(false); setCountdown(0)
+      setStep('email'); setEmail(''); setCode(''); setGuestCode(''); setError(''); setLoading(false); setCountdown(0)
       setTimeout(() => inputRef.current?.focus(), 80)
     }
   }, [open])
@@ -42,6 +46,7 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
   // Focus code input when step changes
   useEffect(() => {
     if (step === 'code') setTimeout(() => codeRef.current?.focus(), 80)
+    if (step === 'guestcode') setTimeout(() => guestCodeRef.current?.focus(), 80)
   }, [step])
 
   // Resend countdown
@@ -85,6 +90,16 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
     codeRef.current?.focus()
   }
 
+  async function handleRedeemGuestCode(e: React.FormEvent) {
+    e.preventDefault()
+    if (!guestCode.trim()) { setError('Enter a guest code'); return }
+    setLoading(true); setError('')
+    const res = await redeemGuestCode(guestCode.trim())
+    setLoading(false)
+    if (!res.ok) { setError(res.error ?? 'Invalid code'); return }
+    onGuestSuccess?.()
+  }
+
   const { title, sub } = REASONS[reason]
 
   return (
@@ -107,9 +122,9 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
         <div style={{
           width: '100%', maxWidth: 420,
           background: '#13131f',
-          border: '1px solid rgba(124,58,237,0.35)',
+          border: '1px solid rgba(163,230,53,0.35)',
           borderRadius: 20,
-          boxShadow: '0 0 80px rgba(124,58,237,0.2), 0 24px 64px rgba(0,0,0,0.6)',
+          boxShadow: '0 0 80px rgba(163,230,53,0.2), 0 24px 64px rgba(0,0,0,0.6)',
           pointerEvents: 'auto',
           overflow: 'hidden',
         }}>
@@ -117,7 +132,7 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
           {/* Header gradient strip */}
           <div style={{
             height: 4,
-            background: 'linear-gradient(90deg,#7c3aed,#ec4899,#f59e0b)',
+            background: 'linear-gradient(90deg,#a3e635,#22d3ee,#f59e0b)',
           }} />
 
           <div style={{ padding: '28px 28px 32px' }}>
@@ -138,7 +153,7 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
               <div style={{ textAlign: 'center', padding: '16px 0 8px' }}>
                 <CheckCircle2 size={52} color="#4ade80" style={{ marginBottom: 16 }} />
                 <p style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 8 }}>You're in! 🎉</p>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>Signed in as <strong style={{ color: '#a78bfa' }}>{email}</strong></p>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>Signed in as <strong style={{ color: '#d9f99d' }}>{email}</strong></p>
               </div>
             ) : (
               <>
@@ -146,11 +161,11 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
                   <div style={{
                     width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-                    background: 'linear-gradient(135deg,rgba(124,58,237,0.3),rgba(236,72,153,0.2))',
-                    border: '1px solid rgba(124,58,237,0.4)',
+                    background: 'linear-gradient(135deg,rgba(163,230,53,0.3),rgba(236,72,153,0.2))',
+                    border: '1px solid rgba(163,230,53,0.4)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    {reason === 'create' ? <Wand2 size={22} color="#a78bfa" /> : <Gamepad2 size={22} color="#a78bfa" />}
+                    {reason === 'create' ? <Wand2 size={22} color="#d9f99d" /> : <Gamepad2 size={22} color="#d9f99d" />}
                   </div>
                   <div>
                     <p style={{ fontSize: 18, fontWeight: 900, color: '#fff', marginBottom: 3 }}>{title}</p>
@@ -165,8 +180,8 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
                   {['Free forever', 'No password', 'Instant access'].map(p => (
                     <span key={p} style={{
                       fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 99,
-                      background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)',
-                      color: '#c4b5fd',
+                      background: 'rgba(163,230,53,0.12)', border: '1px solid rgba(163,230,53,0.25)',
+                      color: '#d9f99d',
                     }}>{p}</span>
                   ))}
                 </div>
@@ -192,7 +207,7 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
                           background: '#0e0e1a', color: '#fff', fontSize: 14,
                           outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
                         }}
-                        onFocus={e => { e.currentTarget.style.borderColor = '#7c3aed' }}
+                        onFocus={e => { e.currentTarget.style.borderColor = '#a3e635' }}
                         onBlur={e => { e.currentTarget.style.borderColor = error ? '#ef4444' : 'rgba(255,255,255,0.12)' }}
                       />
                     </div>
@@ -202,13 +217,61 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
                       disabled={loading}
                       style={{
                         width: '100%', padding: '14px', borderRadius: 10, border: 'none',
-                        background: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+                        background: 'linear-gradient(135deg,#a3e635,#65a30d)',
                         color: '#fff', fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         opacity: loading ? 0.7 : 1, fontFamily: 'inherit',
                       }}
                     >
                       {loading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Sending…</> : <><Sparkles size={15} /> Send login code</>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setStep('guestcode'); setError('') }}
+                      style={{ width: '100%', background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 12, cursor: 'pointer', padding: '14px 0 0', textAlign: 'center' }}
+                    >
+                      Have a guest code?
+                    </button>
+                  </form>
+                ) : step === 'guestcode' ? (
+                  /* ── Guest/admin code step ── */
+                  <form onSubmit={handleRedeemGuestCode}>
+                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 16, lineHeight: 1.5 }}>
+                      Enter the code you were given. Unlocks access without signing in.
+                    </p>
+                    <input
+                      ref={guestCodeRef}
+                      type="text"
+                      value={guestCode}
+                      onChange={e => { setGuestCode(e.target.value); setError('') }}
+                      placeholder="Guest code"
+                      style={{
+                        width: '100%', padding: '13px 14px', borderRadius: 10,
+                        border: `1.5px solid ${error ? '#ef4444' : 'rgba(255,255,255,0.12)'}`,
+                        background: '#0e0e1a', color: '#fff', fontSize: 14,
+                        outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+                        marginBottom: error ? 8 : 16,
+                      }}
+                      onFocus={e => { e.currentTarget.style.borderColor = '#a3e635' }}
+                      onBlur={e => { e.currentTarget.style.borderColor = error ? '#ef4444' : 'rgba(255,255,255,0.12)' }}
+                    />
+                    {error && <p style={{ fontSize: 12, color: '#f87171', marginBottom: 12 }}>⚠ {error}</p>}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      style={{
+                        width: '100%', padding: '14px', borderRadius: 10, border: 'none',
+                        background: 'linear-gradient(135deg,#a3e635,#65a30d)',
+                        color: '#fff', fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        opacity: loading ? 0.7 : 1, fontFamily: 'inherit',
+                      }}
+                    >
+                      {loading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Checking…</> : 'Unlock'}
+                    </button>
+                    <button type="button" onClick={() => { setStep('email'); setGuestCode(''); setError('') }}
+                      style={{ width: '100%', background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 12, cursor: 'pointer', padding: '14px 0 0', textAlign: 'center' }}>
+                      ← Back to sign in
                     </button>
                   </form>
                 ) : (
@@ -238,7 +301,7 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
                         outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box',
                         marginBottom: error ? 8 : 16,
                       }}
-                      onFocus={e => { e.currentTarget.style.borderColor = '#7c3aed' }}
+                      onFocus={e => { e.currentTarget.style.borderColor = '#a3e635' }}
                       onBlur={e => { e.currentTarget.style.borderColor = error ? '#ef4444' : 'rgba(255,255,255,0.12)' }}
                     />
                     {error && <p style={{ fontSize: 12, color: '#f87171', marginBottom: 12 }}>⚠ {error}</p>}
@@ -247,7 +310,7 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
                       disabled={loading || code.length !== 6}
                       style={{
                         width: '100%', padding: '14px', borderRadius: 10, border: 'none',
-                        background: code.length === 6 ? 'linear-gradient(135deg,#7c3aed,#5b21b6)' : 'rgba(255,255,255,0.06)',
+                        background: code.length === 6 ? 'linear-gradient(135deg,#a3e635,#65a30d)' : 'rgba(255,255,255,0.06)',
                         color: code.length === 6 ? '#fff' : 'rgba(255,255,255,0.3)',
                         fontSize: 15, fontWeight: 800, cursor: code.length === 6 ? 'pointer' : 'not-allowed',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -262,7 +325,7 @@ export default function AuthModal({ open, onClose, onSuccess, reason = 'general'
                         ← Change email
                       </button>
                       <button type="button" onClick={handleResend} disabled={countdown > 0}
-                        style={{ background: 'none', border: 'none', fontSize: 12, cursor: countdown > 0 ? 'not-allowed' : 'pointer', padding: 0, color: countdown > 0 ? 'rgba(255,255,255,0.2)' : '#a78bfa' }}>
+                        style={{ background: 'none', border: 'none', fontSize: 12, cursor: countdown > 0 ? 'not-allowed' : 'pointer', padding: 0, color: countdown > 0 ? 'rgba(255,255,255,0.2)' : '#d9f99d' }}>
                         {countdown > 0 ? `Resend in ${countdown}s` : 'Resend code'}
                       </button>
                     </div>

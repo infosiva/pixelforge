@@ -4,12 +4,12 @@ import GameCard from './GameCard'
 import type { Game, GameGenre } from '@/lib/types'
 
 const GENRES: { label: string; value: GameGenre | 'all'; icon: string; color: string }[] = [
-  { label: 'All',         value: 'all',         icon: '🕹️', color: '#a78bfa' },
+  { label: 'All',         value: 'all',         icon: '🕹️', color: '#d9f99d' },
   { label: 'Arcade',      value: 'arcade',      icon: '👾', color: '#f472b6' },
   { label: 'Shooter',     value: 'shooter',     icon: '🚀', color: '#f87171' },
   { label: 'Platformer',  value: 'platformer',  icon: '🏃', color: '#fbbf24' },
   { label: 'Puzzle',      value: 'puzzle',      icon: '🧩', color: '#34d399' },
-  { label: 'RPG',         value: 'rpg',         icon: '⚔️', color: '#a78bfa' },
+  { label: 'RPG',         value: 'rpg',         icon: '⚔️', color: '#d9f99d' },
   { label: 'Educational', value: 'educational', icon: '🎓', color: '#4ade80' },
 ]
 
@@ -84,7 +84,7 @@ export default function ArcadeGrid({ games }: { games: Game[] }) {
         .ag-eyebrow {
           font-size: 10px; font-weight: 900; color: rgba(167,139,250,0.6);
           letter-spacing: 0.12em;
-          background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2);
+          background: rgba(163,230,53,0.1); border: 1px solid rgba(163,230,53,0.2);
           padding: 2px 8px; border-radius: 4px;
           display: none; /* shown via title group */
         }
@@ -135,9 +135,9 @@ export default function ArcadeGrid({ games }: { games: Game[] }) {
         }
         .ag-pill-active {
           background: rgba(var(--pill-color, 167,139,250), 0.12) !important;
-          border-color: color-mix(in srgb, var(--pill-color, #a78bfa) 40%, transparent) !important;
-          color: var(--pill-color, #a78bfa) !important;
-          box-shadow: 0 0 16px color-mix(in srgb, var(--pill-color, #a78bfa) 25%, transparent);
+          border-color: color-mix(in srgb, var(--pill-color, #d9f99d) 40%, transparent) !important;
+          color: var(--pill-color, #d9f99d) !important;
+          box-shadow: 0 0 16px color-mix(in srgb, var(--pill-color, #d9f99d) 25%, transparent);
         }
         .ag-pill-icon { font-size: 14px; }
         .ag-pill-count {
@@ -171,10 +171,10 @@ export default function ArcadeGrid({ games }: { games: Game[] }) {
         .ag-empty-icon { font-size: 40px; }
         .ag-empty p { font-size: 15px; color: rgba(255,255,255,0.3); }
         .ag-empty-link {
-          font-size: 14px; color: #a78bfa; font-weight: 700;
+          font-size: 14px; color: #d9f99d; font-weight: 700;
           text-decoration: none; transition: color 0.15s;
         }
-        .ag-empty-link:hover { color: #c4b5fd; }
+        .ag-empty-link:hover { color: #d9f99d; }
 
         @media (max-width: 640px) {
           .ag-title { font-size: 22px; }

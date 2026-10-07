@@ -1,20 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
-  --background: #0e0e16;
-  --accent:     #7c3aed;
-  --accent-2:   #6d28d9;
+  --background: #070a08;
+  --accent:     #a3e635;
+  --accent-2:   #65a30d;
   --foreground: #e4e4f0;
-  --border:     rgba(124,58,237,0.18);
+  --border:     rgba(163,230,53,0.18);
 }
 
 @layer base {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body {
-    background: #07060f;
+    background: #070a08;
     color: #d4d4e8;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -38,13 +36,13 @@
 .aurora-primary {
   width: 55vw; height: 55vw;
   top: -15%; left: -10%;
-  background: radial-gradient(ellipse, color-mix(in srgb, #7c3aed 22%, transparent), transparent 70%);
+  background: radial-gradient(ellipse, color-mix(in srgb, #a3e635 22%, transparent), transparent 70%);
   animation-duration: 18s;
 }
 .aurora-secondary {
   width: 45vw; height: 45vw;
   bottom: 10%; right: -5%;
-  background: radial-gradient(ellipse, color-mix(in srgb, #a855f7 16%, transparent), transparent 70%);
+  background: radial-gradient(ellipse, color-mix(in srgb, #22d3ee 14%, transparent), transparent 70%);
   animation-duration: 26s;
   animation-direction: alternate-reverse;
 }
@@ -94,8 +92,8 @@
   --text-2: rgba(255,255,255,0.72);
   --text-3: rgba(255,255,255,0.45);
   --text-4: rgba(255,255,255,0.28);
-  --accent: #7c3aed;
-  --accent-2: #ec4899;
+  --accent: #a3e635;
+  --accent-2: #22d3ee;
 }
 
 /* ── Cards ── */
@@ -120,16 +118,16 @@
   border-radius: 8px;
   font-weight: 700;
   font-size: 14px;
-  color: #fff;
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  color: #0a0c08;
+  background: linear-gradient(135deg, #bef264, #a3e635 55%, #84cc16);
   border: none;
   cursor: pointer;
   transition: all 0.15s;
   text-decoration: none;
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  box-shadow: 0 0 20px rgba(124,58,237,0.4);
+  background: linear-gradient(135deg, #d9f99d, #a3e635);
+  box-shadow: 0 0 20px rgba(163,230,53,0.4);
   transform: translateY(-1px);
 }
 .btn-secondary {
@@ -192,7 +190,7 @@
   white-space: nowrap;
 }
 .chip:hover { color: var(--text-2); border-color: var(--border-strong); }
-.chip.active { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
+.chip.active { background: rgba(163,230,53,0.2); border-color: rgba(163,230,53,0.5); color: #d9f99d; }
 
 /* ── Section heading ── */
 .section-heading {
@@ -208,8 +206,8 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 16px rgba(124,58,237,0.3); }
-  50%       { box-shadow: 0 0 32px rgba(124,58,237,0.6); }
+  0%, 100% { box-shadow: 0 0 16px rgba(163,230,53,0.3); }
+  50%       { box-shadow: 0 0 32px rgba(163,230,53,0.6); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -299,7 +297,7 @@
   position: absolute;
   top: -2px; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #7c3aed, #ec4899);
+  background: linear-gradient(90deg, #a3e635, #22d3ee);
   border-radius: 2px 2px 0 0;
 }
 
@@ -338,3 +336,22 @@ pre {
 @media (max-width: 768px) {
   html, body { overflow-x: hidden !important; }
 }
+
+/* ── Reduced motion: stop drift + grain ── */
+@media (prefers-reduced-motion: reduce) {
+  .aurora, .grain { animation: none !important; }
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+/* ── Runtime archetype variants: hub layout.archetype -> <html data-layout>. Default archetype has no rule (no visual change). ── */
+[data-layout="weekend-lifestyle"] [class*="card"] { border-radius: 24px; }
+[data-layout="weekend-lifestyle"] :is(.btn-primary,.btn-accent,.btn-glow,button[type="submit"]) { border-radius: 999px; }
+[data-layout="directory-marketplace"] [class*="card"] { border-radius: 10px; }
+[data-layout="travel-magazine"] [class*="card"] { border-radius: 4px; border-width: 2px; }
+[data-layout="travel-magazine"] main h1 { text-align: left; }
+[data-layout="career-portfolio"] [class*="card"] { border-radius: 0; box-shadow: 4px 4px 0 currentColor; }
+[data-layout="compliance-authority"] [class*="card"] { border-radius: 6px; }
+[data-layout="compliance-authority"] main section { padding-block: clamp(2rem, 4vw, 3rem); }
+[data-layout="bento-showcase"] [class*="card"] { border-radius: 20px; }
+@media (prefers-reduced-motion: reduce) { .ds-bg i, .ds-bg.gradient-shift { animation: none !important; } }

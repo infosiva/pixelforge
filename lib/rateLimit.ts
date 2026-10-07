@@ -13,7 +13,8 @@ if (typeof setInterval !== 'undefined') {
 export function rateLimit(opts: { windowMs?: number; max?: number; message?: string } = {}) {
   const windowMs = opts.windowMs ?? 60_000
   const max      = opts.max ?? 20
-  const msg      = opts.message ?? 'Too many requests — please try again later.'
+  const msg      = opts.message ?? 'Too many requests, please try again later.'
+  const id       = Math.random().toString(36).slice(2) // per-limiter key so limiters do not share counters
 
   return {
     check(req: NextRequest): NextResponse | null {
@@ -22,8 +23,9 @@ export function rateLimit(opts: { windowMs?: number; max?: number; message?: str
         req.headers.get('x-real-ip') ??
         'unknown'
       const now = Date.now()
-      const e = store.get(ip)
-      if (!e || e.resetAt < now) { store.set(ip, { count: 1, resetAt: now + windowMs }); return null }
+      const key = id + ':' + ip
+      const e = store.get(key)
+      if (!e || e.resetAt < now) { store.set(key, { count: 1, resetAt: now + windowMs }); return null }
       e.count++
       if (e.count > max) {
         return NextResponse.json({ error: msg }, {
@@ -36,5 +38,7 @@ export function rateLimit(opts: { windowMs?: number; max?: number; message?: str
   }
 }
 
-export const AI_LIMITER  = rateLimit({ windowMs: 60_000, max: 10, message: 'AI rate limit — max 10/min. Sign in for unlimited access.' })
+export const AI_LIMITER  = rateLimit({ windowMs: 60_000, max: 10, message: 'Rate limit: max 10 requests per minute. Try again shortly.' })
 export const API_LIMITER = rateLimit({ windowMs: 60_000, max: 30 })
+export const CHAT_LIMITER = rateLimit({ windowMs: 3_600_000, max: 60, message: 'Chat limit reached (60 messages per hour). Try again later.' })
+export const FEEDBACK_LIMITER = rateLimit({ windowMs: 3_600_000, max: 20 })
