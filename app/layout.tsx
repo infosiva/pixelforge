@@ -10,7 +10,7 @@ import CookieConsent from "../components/CookieConsent"
 import Footer from "../components/Footer"
 import BackToTop from '@/components/BackToTop'
 import FeedbackWidget from '@/components/FeedbackWidget'
-import { loadSiteTheme, buildThemeStyleTag, buildGa4Snippet, isValidGa4Id, isWidgetHidden } from '@/lib/theme-loader'
+import { loadSiteTheme, buildThemeStyleTag, buildGa4Snippet, resolveGa4Id, isValidGa4Id, isWidgetHidden } from '@/lib/theme-loader'
 
 import { MotionProvider } from "@infosiva/shared-ui/modern";
 export const metadata: Metadata = {
@@ -79,9 +79,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {!isWidgetHidden(theme, 'chatbot') && <ChatBot config={PIXELFORGE_CHAT_CONFIG} />}
         {!isWidgetHidden(theme, 'backToTop') && <BackToTop accentColor="#a3e635" />}
         {!isWidgetHidden(theme, 'cookieConsent') && <CookieConsent />}
-        {isValidGa4Id(theme?.analytics?.ga4Id) && (
+        {isValidGa4Id(resolveGa4Id(theme)) && (
           <>
-            <Script src={`https://www.googletagmanager.com/gtag/js?id=${theme?.analytics?.ga4Id}`} strategy="afterInteractive" />
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${resolveGa4Id(theme)}`} strategy="afterInteractive" />
             <Script id="ga4-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: ga4 }} />
           </>
         )}
